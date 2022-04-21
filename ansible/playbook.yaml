@@ -1,0 +1,53 @@
+- hosts: all
+  tasks:
+    - name: Add keyserver for R
+      become: true
+      apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: E298A3A825C0D65DFD57CBB651716619E084DAB9
+
+    - name: Add repository for R
+      apt_repository:
+        repo: deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/
+        state: present
+        update_cache: True
+       
+    - name: Install dependencies
+      become: true
+      apt:
+        name: ['gcc', 'emacs', 'libomp-dev', 'r-base']
+        state: latest
+
+    - name: Clone the repository
+      git:
+        repo: git@github.com:griverorz/ceo-barometer-src.git
+        version: main
+        dest: ~/ceobarometer
+        accept_hostkey: yes
+      become: no
+  
+    - name: Copy Rprofile, Renviron and data files
+      copy: src={{ item.src }} dest={{ item.dest }}
+      with_items:
+        - { src: 'Rprofile', dest: '~/.Rprofile' }
+        - { src: 'Renviron', dest: '~/.Renviron' }
+        - { src: '../dta/raw-dta/', dest: '~/ceobarometer/dta/raw-dta/' }
+      
+    - name: Set R library
+      file:
+        path: /opt/R
+        state: directory
+        mode: 0777
+        owner: root
+      
+    - name: Install R packages
+      shell: Rscript -e "install.packages(\"{{ item }}\")"
+      with_items:
+        - haven
+        - labelled
+        - caret
+        - dplyr
+        - xgboost
+        - stringi
+        - pROC
+        - MLmetrics

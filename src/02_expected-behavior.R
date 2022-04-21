@@ -13,8 +13,7 @@ library(caret); library(xgboost)
 library(stringi)
 library(pROC)
 
-bop <- read_dta(file.path(DTA_FOLDER, "./BOP221.dta"))
-
+bop <- read_dta(file.path(RAW_DTA_FOLDER, "./BOP221.dta"))
 
 ## Recoding for model
 bop <- bop |>
@@ -118,9 +117,10 @@ fit_partychoice <- train(as.factor(intention) ~ .,
                          na.action=na.pass,
                          verbose=FALSE,
                          verbosity=0)
+
 m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
 xgb.save(m, fname=assetize("fit_partychoice.model"))
-
+saveRDS(fit_partychoice, assetize("fit_partychoice.RDS"))
 
 partychoice <- predict(fit_partychoice, newdata=bop, na.action=na.pass, type="prob")
 bop$pintention <- predict(fit_partychoice, newdata=bop, na.action=na.pass, type="raw")
@@ -152,6 +152,14 @@ fit_abstention <- train(as.factor(abstention) ~ .,
 
 m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)
 xgb.save(m, fname=assetize("fit_abstention.model"))
+saveRDS(fit_abstention, assetize("fit_abstention.RDS"))
+
+
+## Read back
+mfit <- readRDS(assetize("fit_abstention.RDS"))
+m <- xgb.load(assetize("fit_abstention.model"))
+mfit$finalModel$handle <- m$handle
+mfit$finalModel$raw <- m$raw
 
 
 ## abstention <- predict(fit_abstention, newdata=bop, na.action=na.pass, type="prob")

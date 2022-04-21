@@ -1,5 +1,15 @@
 # Data files
 dta/raw-dta
+*.sync*
+
+# MacOS files
+Icon?
+
+# Ansible assets
+ansible/inventory
+
+# Snakemake
+*.snakemake*
 
 # History files
 .Rhistory
@@ -40,4 +50,4 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
->>>>>>> a4d04fd19a7ccae0d7914b9f9f620db4fa8eed5f
+

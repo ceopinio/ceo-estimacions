@@ -1,0 +1,35 @@
+- hosts: all
+  tasks:
+    - name: Add keyserver for R
+      become: true
+      apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: E298A3A825C0D65DFD57CBB651716619E084DAB9
+
+    - name: Add repository for R
+      apt_repository:
+        repo: deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/
+        state: present
+        update_cache: True
+       
+    - name: Install dependencies
+      become: true
+      apt:
+        name: ['gcc', 'emacs', 'libomp-dev', 'r-base']
+        state: latest
+        
+    - name: Install R packages
+      shell: R -e "install.packages(\"{{ item }}\")"
+      with_items:
+        - haven
+        - labelled
+        - caret
+        - dplyr
+        - xgboost
+        - stringi
+        - pROC
+        
+    - name: Copy ceobarometer data
+      copy: src=dta/raw-dta dest=~/dta/raw-dta
+
+

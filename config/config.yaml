@@ -1,0 +1,5 @@
+DTA_FOLDER: "dta"
+RAW_DTA_FOLDER: "dta/raw-dta"
+IMG_FOLDER: "img"
+TXT_FOLDER: "txt"
+SRC_FOLDER: "src"

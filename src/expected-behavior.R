@@ -13,6 +13,7 @@ library(dplyr)
 library(caret); library(xgboost)
 library(stringi)
 library(pROC)
+library(doParallel)
 
 FOLDS <- 5
 REPEATS <- 5
@@ -20,6 +21,10 @@ REPEATS <- 5
 config <- read_yaml("./config/config.yaml")
 
 bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
+
+## Make cluster
+cl <- makePSOCKcluster(4)
+registerDoParallel(cl)
 
 ## Parameter search
 grid_partychoice <- expand.grid(eta=c(.1, .05, .01, .005, .001),
@@ -84,3 +89,5 @@ fit_abstention <- train(as.factor(abstention) ~ .,
 m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)
 xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit-abstention.model"))
 saveRDS(fit_abstention, file.path(config$DTA_FOLDER, "fit-abstention.RDS"))
+
+stopCluster(cl)

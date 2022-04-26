@@ -18,21 +18,37 @@ library(doParallel)
 FOLDS <- 5
 REPEATS <- 5
 
+## Folder configuration
 config <- read_yaml("./config/config.yaml")
-
 bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
 
+## Cluster configuration
+inventory <- read_yaml("./ansible/inventory")
+ips <- names(inventory$droplet$hosts)
+sshkey <- inventory$droplet$vars$ansible_ssh_private_key_file
+localhostip <- read_yaml("./ansible/localhost")
+
 ## Make cluster
-cl <- makePSOCKcluster(4)
+cl <- makePSOCKcluster(names=c("localhost", ips),
+                       master=localhostip,
+                       user="root",
+                       homogeneous=FALSE,
+                       useXDR=FALSE,
+                       outfile="cluster-log.txt",
+                       rscript="/usr/bin/Rscript",
+                       rshopts=c("-o", "StrictHostKeyChecking=no",
+                                 "-o", "IdentitiesOnly=yes",
+                                 "-i", sshkey))
+
 registerDoParallel(cl)
 
 ## Parameter search
-grid_partychoice <- expand.grid(eta=c(.1, .05, .01, .005, .001),
+grid_partychoice <- expand.grid(eta=c(.1, .05, .01, .005),
                                 max_depth=c(1, 2, 3),
                                 min_child_weight=1,
                                 subsample=0.8,
                                 colsample_bytree=0.8,
-                                nrounds=c(.5, 1, 2, 5, 7, 10)*100,
+                                nrounds=c(.5, 1, 2, 5, 7)*100,
                                 gamma=0)
 
 control_partychoice <- trainControl(method="repeatedcv",
@@ -49,6 +65,7 @@ fit_partychoice <- train(as.factor(intention) ~ .,
                          trControl=control_partychoice,
                          tuneGrid=grid_partychoice,
                          na.action=na.pass,
+                         allowParallel=TRUE,                         
                          verbose=FALSE,
                          verbosity=0)
 
@@ -90,4 +107,5 @@ m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)
 xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit-abstention.model"))
 saveRDS(fit_abstention, file.path(config$DTA_FOLDER, "fit-abstention.RDS"))
 
+## Cleanup
 stopCluster(cl)

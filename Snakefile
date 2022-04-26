@@ -1,8 +1,8 @@
-# Load the configuration
-configfile: 'config/config.yaml'
-
 from os.path import join
 
+
+# Load the configuration
+configfile: 'config/config.yaml'
 
 SRC_FOLDER = config["SRC_FOLDER"]
 DTA_FOLDER = config["DTA_FOLDER"]

@@ -3,10 +3,8 @@ PREFIX := ceobarometer
 
 # Folder with text 
 TXT := ./txt
-
 # Input files 
 INPUT_FILES := $(wildcard $(TXT)/*.md)
-
 # Bibliography
 BIB := $(TXT)/$(PREFIX).bib
 

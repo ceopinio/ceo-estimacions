@@ -14,22 +14,25 @@ library(caret); library(xgboost)
 library(stringi)
 library(pROC)
 
+FOLDS <- 5
+REPEATS <- 5
+
 config <- read_yaml("./config/config.yaml")
 
 bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
 
 ## Parameter search
-grid_partychoice <- expand.grid(eta=c(.01),
-                                max_depth=c(1),
+grid_partychoice <- expand.grid(eta=c(.1, .05, .01, .005, .001),
+                                max_depth=c(1, 2, 3),
                                 min_child_weight=1,
                                 subsample=0.8,
                                 colsample_bytree=0.8,
-                                nrounds=c(1)*100,
+                                nrounds=c(.5, 1, 2, 5, 7, 10)*100,
                                 gamma=0)
 
 control_partychoice <- trainControl(method="repeatedcv",
-                                    number=5,
-                                    repeats=1,
+                                    number=FOLDS,
+                                    repeats=REPEATS,
                                     classProbs=TRUE,                            
                                     summaryFunction=multiClassSummary)
 
@@ -46,8 +49,8 @@ fit_partychoice <- train(as.factor(intention) ~ .,
 
 ## Save model
 m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
-xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit_partychoice.model"))
-saveRDS(fit_partychoice, file.path(config$DTA_FOLDER, "fit_partychoice.RDS"))
+xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit-partychoice.model"))
+saveRDS(fit_partychoice, file.path(config$DTA_FOLDER, "fit-partychoice.RDS"))
 
 
 #################### Vote or not ####################
@@ -56,12 +59,12 @@ grid_abstention <- expand.grid(eta=c(.01, .005, .001),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=c(1, 3, 5, 7, 10)*100,
+                               nrounds=c(1, 2, 5, 7, 10)*100,
                                gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",
-                                   number=5,
-                                   repeats=1,
+                                   number=FOLDS,
+                                   repeats=REPEATS,
                                    classProbs=TRUE,
                                    summaryFunction=multiClassSummary,
                                    savePredictions=TRUE)
@@ -77,6 +80,7 @@ fit_abstention <- train(as.factor(abstention) ~ .,
                         verbose=FALSE,
                         verbosity=0)
 
+## Save model
 m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)
-xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit_abstention.model"))
-saveRDS(fit_abstention, file.path(config$DTA_FOLDER, "fit_abstention.RDS"))
+xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit-abstention.model"))
+saveRDS(fit_abstention, file.path(config$DTA_FOLDER, "fit-abstention.RDS"))

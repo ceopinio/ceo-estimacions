@@ -16,7 +16,7 @@ library(pROC)
 library(doParallel)
 
 FOLDS <- 5
-REPEATS <- 5
+REPEATS <- 1
 
 ## Folder configuration
 config <- read_yaml("./config/config.yaml")
@@ -24,12 +24,12 @@ bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
 
 ## Cluster configuration
 inventory <- read_yaml("./ansible/inventory")
-ips <- names(inventory$droplet$hosts)
 sshkey <- inventory$droplet$vars$ansible_ssh_private_key_file
+workersips <- names(inventory$droplet$hosts)
 localhostip <- read_yaml("./ansible/localhost")
 
 ## Make cluster
-cl <- makePSOCKcluster(names=c("localhost", ips),
+cl <- makePSOCKcluster(names=c("localhost", workersips),
                        master=localhostip,
                        user="root",
                        homogeneous=FALSE,
@@ -60,7 +60,7 @@ control_partychoice <- trainControl(method="repeatedcv",
 fit_partychoice <- train(as.factor(intention) ~ .,
                          data=droplevels(subset(bop,
                                                 subset=!is.na(bop$intention),
-                                                select= -abstention)), 
+                                                select= -c(id, abstention))), 
                          method="xgbTree", 
                          trControl=control_partychoice,
                          tuneGrid=grid_partychoice,
@@ -69,7 +69,7 @@ fit_partychoice <- train(as.factor(intention) ~ .,
                          verbose=FALSE,
                          verbosity=0)
 
-## Save model
+## ave model
 m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
 xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit-partychoice.model"))
 saveRDS(fit_partychoice, file.path(config$DTA_FOLDER, "fit-partychoice.RDS"))
@@ -94,12 +94,13 @@ control_abstention <- trainControl(method="repeatedcv",
 fit_abstention <- train(as.factor(abstention) ~ .,
                         data=droplevels(subset(bop,
                                                subset=!is.na(bop$abstention),
-                                               select= -intention)), 
+                                               select= -c(id, intention))), 
                         method="xgbTree", 
                         trControl=control_abstention,
                         tuneGrid=grid_abstention,
                         na.action=na.pass,
-                        verbose=FALSE,
+                        allowParallel=TRUE,
+                        verbose=FALSE,                        
                         verbosity=0)
 
 ## Save model

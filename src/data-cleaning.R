@@ -13,12 +13,15 @@ library(stringi)
 config <- read_yaml("config/config.yaml")
 
 bop <- read_dta(file.path(config$RAW_DTA_FOLDER, "BOP221.dta"))
-
+bop$id <- 1:nrow(bop)
+  
 ## Recoding for model
 bop <- bop |>
-  mutate(intention=case_when(INT_PARLAMENT_VOT_R < 93 ~ INT_PARLAMENT_VOT_R,
-                             INT_PARLAMENT_VOT_R == 93 ~ 80, # Null is other
-                             INT_PARLAMENT_VOT_R > 93 ~ NA_real_),
+  mutate(intention=case_when(INT_PARLAMENT_VOT %in%
+                               c(1, 3, 4, 6, 10, 21, 22, 23) ~ INT_PARLAMENT_VOT,
+                             INT_PARLAMENT_VOT %in%
+                               c(5, 19, 20) ~ 80,
+                             INT_PARLAMENT_VOT_R > 80 ~ NA_real_),
          recall=case_when(REC_PARLAMENT_VOT_R < 93 ~ REC_PARLAMENT_VOT_R,
                           REC_PARLAMENT_VOT_R %in% c(93, 94) ~ 80, ## Null are other
                           REC_PARLAMENT_VOT_R > 96 ~ 98), ## Vote recall
@@ -58,7 +61,8 @@ bop <- bop |>
                         perl=TRUE), ~ if_else(.x >= 98,
                                               NA_real_,
                                               as.numeric(.x)))) |> ## Evaluation
-  select("intention",
+  select("id",
+         "intention",
          "recall",
          "simpatia",
          "abstention",

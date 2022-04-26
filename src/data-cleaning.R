@@ -20,7 +20,7 @@ bop <- bop |>
                              INT_PARLAMENT_VOT_R == 93 ~ 80, # Null is other
                              INT_PARLAMENT_VOT_R > 93 ~ NA_real_),
          recall=case_when(REC_PARLAMENT_VOT_R < 93 ~ REC_PARLAMENT_VOT_R,
-                          REC_PARLAMENT_VOT_R %in% c(93, 94)~ 80, ## Null are other
+                          REC_PARLAMENT_VOT_R %in% c(93, 94) ~ 80, ## Null are other
                           REC_PARLAMENT_VOT_R > 96 ~ 98), ## Vote recall
          abstention=case_when(INT_PARLAMENT_VOT_R %in% 96 ~ "Will.not.vote",
                               INT_PARLAMENT_VOT_R %in% c(98, 99) ~ NA_character_,

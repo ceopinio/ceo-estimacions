@@ -8,7 +8,7 @@ SRC_FOLDER = config["SRC_FOLDER"]
 DTA_FOLDER = config["DTA_FOLDER"]
 RAW_DTA_FOLDER = config["RAW_DTA_FOLDER"]
 
-models=["fit_partychoice", "fit_abstention"]
+models=["fit-partychoice", "fit-abstention"]
 exts=["RDS", "model"]
 
 ## RULES

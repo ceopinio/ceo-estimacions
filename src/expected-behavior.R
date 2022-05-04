@@ -1,8 +1,14 @@
 #!/usr/bin/env Rscript
 
-## Description: Estimation of individual behavior
-## Author: Gonzalo Rivero
-## Date: 07-Apr-2022 20:04
+## Assigns a behavior to all undecided/nonrespondents (party choice and
+## decision to abstain). The vote choice model assigns a party. The
+## model for the decision assigns a produces probabilities. In both
+## cases, stores the predicted behavior for each respondent regardless
+## of the answer they provided.
+
+## Assumes access to a cluster. The IPs for workers are assumed to be
+## stored in an Ansible inventory file. To run in local, disable the
+## "Cluster configuration" section of the script.
 
 set.seed(314965)
 
@@ -15,21 +21,26 @@ library(stringi)
 library(pROC)
 library(doParallel)
 
-FOLDS <- 5
-REPEATS <- 1
+## ---------------------------------------- 
+## Read in data and configuration
 
-## Folder configuration
 config <- read_yaml("./config/config.yaml")
 bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
 
+## Number of folds and repeats for repeated cv
+FOLDS <- 5
+REPEATS <- 5
+
+## ---------------------------------------- 
 ## Cluster configuration
-inventory <- read_yaml("./ansible/inventory")
+
+inventory <- read_yaml("./ansible/inventory") 
 sshkey <- inventory$droplet$vars$ansible_ssh_private_key_file
 workersips <- names(inventory$droplet$hosts)
 localhostip <- read_yaml("./ansible/localhost")
 
 ## Make cluster
-cl <- makePSOCKcluster(names=c("localhost", workersips),
+cl <- makePSOCKcluster(names=c("localhost", workersips), 
                        master=localhostip,
                        user="root",
                        homogeneous=FALSE,
@@ -42,13 +53,15 @@ cl <- makePSOCKcluster(names=c("localhost", workersips),
 
 registerDoParallel(cl)
 
-## Parameter search
+## ---------------------------------------- 
+## Party choice model
+
 grid_partychoice <- expand.grid(eta=c(.1, .05, .01, .005),
-                                max_depth=c(1, 2, 3),
+                                max_depth=c(1, 2, 3, 4, 5),
                                 min_child_weight=1,
                                 subsample=0.8,
                                 colsample_bytree=0.8,
-                                nrounds=c(.5, 1, 2, 5, 7)*100,
+                                nrounds=c(.5, 1, 2, 5, 7, 10, 15)*100,
                                 gamma=0)
 
 control_partychoice <- trainControl(method="repeatedcv",
@@ -69,19 +82,34 @@ fit_partychoice <- train(as.factor(intention) ~ .,
                          verbose=FALSE,
                          verbosity=0)
 
-## ave model
+## Save model
 m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
-xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit-partychoice.model"))
-saveRDS(fit_partychoice, file.path(config$DTA_FOLDER, "fit-partychoice.RDS"))
+xgb.save(m, fname=file.path(config$MDL_FOLDER, "model-partychoice.xgb"))
+saveRDS(fit_partychoice, file.path(config$MDL_FOLDER, "model-partychoice.RDS"))
+
+## Predicted party choice
+p_partychoice <- predict(fit_partychoice,
+                         newdata=bop,
+                         na.action=na.pass,
+                         type="raw")
+
+## Save predictions to disk
+bop <- droplevels(bop)
+
+saveRDS(data.frame("id"=bop$id,
+                   "p_partychoice"=p_partychoice),
+        file.path(config$DTA_FOLDER, "predicted-partychoice.RDS"))
 
 
-#################### Vote or not ####################
+## ---------------------------------------- 
+## Abstention model
+
 grid_abstention <- expand.grid(eta=c(.01, .005, .001),
-                               max_depth=c(1, 2, 3),
+                               max_depth=c(1, 2, 3, 4, 5),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=c(1, 2, 5, 7, 10)*100,
+                               nrounds=c(1, 2, 5, 7, 10, 15)*100,
                                gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",
@@ -105,8 +133,34 @@ fit_abstention <- train(as.factor(abstention) ~ .,
 
 ## Save model
 m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)
-xgb.save(m, fname=file.path(config$DTA_FOLDER, "fit-abstention.model"))
-saveRDS(fit_abstention, file.path(config$DTA_FOLDER, "fit-abstention.RDS"))
+xgb.save(m, fname=file.path(config$MDL_FOLDER, "model-abstention.xgb"))
+saveRDS(fit_abstention, file.path(config$MDL_FOLDER, "model-abstention.RDS"))
 
-## Cleanup
+## Predicted abstention
+bop$p_abstention <- predict(fit_abstention,
+                            newdata=bop,
+                            na.action=na.pass,
+                            type="prob")$Will.not.vote
+
+saveRDS(data.frame("id"=bop$id,
+                   "p_abstention"=bop$p_abstention),
+        file.path(config$DTA_FOLDER, "predicted-abstention.RDS"))
+
+## Probability threshold to decide if voter abstains
+probs <- seq(.1, .9, by=0.005)
+ths <- thresholder(fit_abstention,
+                   threshold=probs,
+                   final=TRUE,
+                   statistics="all")
+
+## Threshold with max TPR and min FPR
+prob <- ths[which.min(ths$Dist), "prob_threshold"] 
+
+## Save probability 
+saveRDS(prob, file.path(config$DTA_FOLDER, "thr-predicted-abstention.RDS"))
+
+## ---------------------------------------- 
+## Clean up
+
 stopCluster(cl)
+

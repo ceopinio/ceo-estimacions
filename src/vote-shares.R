@@ -9,7 +9,7 @@
 
 library(yaml)
 library(tidyr)
-library(ggplot2)
+library(ggplot2); theme_set(theme_bw())
 
 ## ---------------------------------------- 
 ## Read in data and configuratio
@@ -69,3 +69,47 @@ names(estimates)[names(estimates) == "p_intention"] <- "party"
 
 ## Save data
 saveRDS(estimates, file.path(config$DTA_FOLDER, "estimated-vote-share.RDS"))
+
+## ---------------------------------------- 
+## Simulated effect of turnout rates
+
+turnout <- seq(.5, 1, by=0.01)
+n_abstention <- (1 - turnout) *
+  (nrow(bop) - sum(bop$abstention == "Will.not.vote", na.rm=TRUE))
+
+vote <- bop$intention
+vote[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
+vote <- rep(list(as.character(vote)), length(turnout))
+
+## Predicted as abstainers
+pabstainers <- lapply(round(n_abstention), \(x) order(bop$p_abstention)[1:x])
+## Declared as abstainers
+dabstainers <- rep(list(which(bop$abstention == "Will.not.vote")), length(turnout))
+abstainers <- mapply(function(x, y) c(x, y), x=pabstainers, y=dabstainers)
+
+for (i in seq_along(turnout)) vote[[i]][abstainers[[i]]] <- "No.votaria"
+
+sim <- as.data.frame(sapply(vote, \(x) prop.table(xtabs(bop$weight ~ x, subset=x != "No.votaria"))))
+eturnout <- sapply(vote, \(x) prop.table(xtabs(bop$weight ~ x == "No.votaria"))["TRUE"]) ## Actual turnout
+
+names(sim) <- paste0("p", turnout*100)
+sim$party <- rownames(sim)
+
+sim <- reshape(sim,
+               varying=1:length(turnout),
+               direction="long",
+               v.names="share",
+               timevar="p")
+
+sim$ep <- rep(eturnout, each=9)
+
+## Because we are keeping everyone who declared to abstain with their
+## reported choice, the maximum turnout is the declared turnout
+p <- ggplot(sim, aes(x= 1 - ep, y=share, group=party, colour=party))
+pq <- p + geom_line() +
+  labs(title="Effect of simulated turnout on vote share",
+       x="Turnout rate",
+       y="Vote share") +
+  scale_color_discrete("Party")
+ 
+ggsave(file.path(config$IMG_FOLDER, "simulation-abstention.pdf"), pq)

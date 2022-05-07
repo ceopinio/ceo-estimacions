@@ -73,7 +73,7 @@ saveRDS(estimates, file.path(config$DTA_FOLDER, "estimated-vote-share.RDS"))
 ## ---------------------------------------- 
 ## Simulated effect of turnout rates
 
-turnout <- seq(.5, 1, by=0.01)
+turnout <- seq(.4, 1, by=0.01) ## True turnout will trail expected turnout
 n_voting <- (1 - turnout) *
   (nrow(bop) - sum(bop$abstention == "Will.not.vote", na.rm=TRUE))
 

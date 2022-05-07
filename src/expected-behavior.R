@@ -30,7 +30,7 @@ bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
 
 ## Number of folds and repeats for repeated cv
 FOLDS <- 5
-REPEATS <- 5
+REPEATS <- 1
 
 ## ---------------------------------------- 
 ## Cluster configuration
@@ -129,7 +129,8 @@ grid_abstention <- expand.grid(eta=c(.01, .005, .001),
                               min_child_weight=1,
                               subsample=0.8,
                               colsample_bytree=0.8,
-                              nrounds=c(1, 2, 5, 7, 10, 15)*100,
+                              nrounds=500,
+                              ## nrounds=c(1, 2, 5, 7, 10, 15)*100,
                               gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",
@@ -157,27 +158,27 @@ xgb.save(m, fname=file.path(config$MDL_FOLDER, "model-abstention.xgb"))
 saveRDS(fit_abstention, file.path(config$MDL_FOLDER, "model-abstention.RDS"))
 
 ## Predicted abstention
-bop$p_abstention <- predict(fit_abstention,
-                            newdata=bop,
-                            na.action=na.pass,
-                            type="prob")$Will.not.vote
+bop$p_voting <- predict(fit_abstention,
+                        newdata=bop,
+                        na.action=na.pass,
+                        type="prob")$Will.vote
 
 saveRDS(data.frame("id"=bop$id,
-                   "p_abstention"=bop$p_abstention),
-        file.path(config$DTA_FOLDER, "predicted-abstention.RDS"))
+                   "p_voting"=bop$p_voting),
+        file.path(config$DTA_FOLDER, "predicted-voting.RDS"))
 
 ## Probability threshold to decide if voter abstains
 probs <- seq(0, 1, by=0.005)
-ths <- thresholder(fit_abstention,
-                  threshold=probs,
-                  final=TRUE,
-                  statistics="all")
+ths <- thresholder(fit_abstention, 
+                   threshold=probs, ## Calculed for will vote
+                   final=TRUE,
+                   statistics="all")
 
 ## Threshold with max TPR and min FPR
 prob <- ths[which.min(ths$Dist), "prob_threshold"]
 
 ## Save probability 
-saveRDS(prob, file.path(config$DTA_FOLDER, "thr-predicted-abstention.RDS"))
+saveRDS(prob, file.path(config$DTA_FOLDER, "thr-predicted-voting.RDS"))
 
 ## ---------------------------------------- 
 ## ROC curve

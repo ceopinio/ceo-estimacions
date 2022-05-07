@@ -30,7 +30,7 @@ bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
 
 ## Number of folds and repeats for repeated cv
 FOLDS <- 5
-REPEATS <- 1
+REPEATS <- 5
 
 ## ---------------------------------------- 
 ## Cluster configuration
@@ -129,8 +129,7 @@ grid_abstention <- expand.grid(eta=c(.01, .005, .001),
                               min_child_weight=1,
                               subsample=0.8,
                               colsample_bytree=0.8,
-                              nrounds=500,
-                              ## nrounds=c(1, 2, 5, 7, 10, 15)*100,
+                              nrounds=c(1, 2, 5, 7, 10, 15)*100,
                               gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",

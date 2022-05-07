@@ -31,9 +31,9 @@ rule all:
         
 ## Delete everything for re-runs
 rule clean:
-    shell: f"find {DTA_FOLDER} -maxdepth 1 -type f -delete"
+    shell: f"find {DTA_FOLDER} -maxdepth 1 -type f -delete && find {MDL_FOLDER} -maxdepth 1 -type f -delete"
 
-           
+
 rule data_cleaning:
     input:
         dta=join(RAW_DTA_FOLDER, "BOP221.dta"),

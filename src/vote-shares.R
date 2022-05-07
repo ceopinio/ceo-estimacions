@@ -22,13 +22,13 @@ recall_weights <- readRDS(file.path(config$DTA_FOLDER, "weight.RDS"))
 
 ## Predicted behavior
 p_partychoice <- readRDS(file.path(config$DTA_FOLDER, "predicted-partychoice.RDS"))
-p_abstention <- readRDS(file.path(config$DTA_FOLDER, "predicted-abstention.RDS"))
-thr_abstention <- readRDS(file.path(config$DTA_FOLDER, "thr-predicted-abstention.RDS"))
+p_voting <- readRDS(file.path(config$DTA_FOLDER, "predicted-voting.RDS"))
+thr_voting <- readRDS(file.path(config$DTA_FOLDER, "thr-predicted-voting.RDS"))
 
 ## Join all results
 bop <- merge(bop, recall_weights, by="id") 
 bop <- merge(bop, p_partychoice, by="id")
-bop <- merge(bop, p_abstention, by="id") ## Probability of *not* voting
+bop <- merge(bop, p_voting, by="id") ## Probability of *not* voting
 
 ## ---------------------------------------- 
 ## Consolidate results
@@ -38,10 +38,10 @@ bop$p_intention <- bop$intention
 ## If they did not report a party choice, assign the predicted 
 bop$p_intention[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 ## If they declare they will not vote, use that behavior
-bop$p_intention[bop$abstention == "Will.not.vote"] <- "No.votaria"
-## Assign to abstention all respondents with low predicted probability
+bop$p_intention[bop$voting == "Will.not.vote"] <- "No.votaria"
+## Assign to voting all respondents with low predicted probability
 ## of voting (relative to cutoff)
-bop$p_intention[bop$p_abstention > (1 - thr_abstention)] <- "No.votaria"
+bop$p_intention[bop$p_voting < .91] <- "No.votaria"
 bop$p_intention <- droplevels(bop$p_intention)
 
 ## Save results 
@@ -74,7 +74,7 @@ saveRDS(estimates, file.path(config$DTA_FOLDER, "estimated-vote-share.RDS"))
 ## Simulated effect of turnout rates
 
 turnout <- seq(.5, 1, by=0.01)
-n_abstention <- (1 - turnout) *
+n_voting <- (1 - turnout) *
   (nrow(bop) - sum(bop$abstention == "Will.not.vote", na.rm=TRUE))
 
 vote <- bop$intention
@@ -82,7 +82,9 @@ vote[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 vote <- rep(list(as.character(vote)), length(turnout))
 
 ## Predicted as abstainers
-pabstainers <- lapply(round(n_abstention), \(x) order(bop$p_abstention)[1:x])
+pabstainers <- lapply(round(n_voting), \(x) order(bop$p_voting)[1:x])
+last_prob_pabstainers <- sapply(pabstainers, \(x) max(bop$p_voting[x]))
+
 ## Declared as abstainers
 dabstainers <- rep(list(which(bop$abstention == "Will.not.vote")), length(turnout))
 abstainers <- mapply(function(x, y) c(x, y), x=pabstainers, y=dabstainers)
@@ -90,7 +92,7 @@ abstainers <- mapply(function(x, y) c(x, y), x=pabstainers, y=dabstainers)
 for (i in seq_along(turnout)) vote[[i]][abstainers[[i]]] <- "No.votaria"
 
 sim <- as.data.frame(sapply(vote, \(x) prop.table(xtabs(bop$weight ~ x, subset=x != "No.votaria"))))
-eturnout <- sapply(vote, \(x) prop.table(xtabs(bop$weight ~ x == "No.votaria"))["TRUE"]) ## Actual turnout
+eturnout <- 1 - sapply(vote, \(x) prop.table(xtabs(bop$weight ~ x == "No.votaria"))["TRUE"]) ## Actual turnout
 
 names(sim) <- paste0("p", turnout*100)
 sim$party <- rownames(sim)
@@ -103,13 +105,26 @@ sim <- reshape(sim,
 
 sim$ep <- rep(eturnout, each=9)
 
+## Relation between turnout levels and probability of abstaining
+pt_turnout <- cbind.data.frame(turnout, eturnout, last_prob_pabstainers)
+
+p <- ggplot(pt_turnout, aes(x=last_prob_pabstainers, y=eturnout))
+pq <- p + geom_line() + 
+  labs(title="Threshold probability of voting and expected turnout",
+       x="Probability of voting",
+       y="Expected turnout rate") +
+  geom_vline(xintercept=thr_voting, linetype=2) +
+  lims(y=c(0, 1), x=c(0, 1))
+
+ggsave(file.path(config$IMG_FOLDER, "pvoting-turnout.pdf"), pq)
+
 ## Because we are keeping everyone who declared to abstain with their
 ## reported choice, the maximum turnout is the declared turnout
-p <- ggplot(sim, aes(x= 1 - ep, y=share, group=party, colour=party))
+p <- ggplot(sim, aes(x= ep, y=share, group=party, colour=party))
 pq <- p + geom_line() +
   labs(title="Effect of simulated turnout on vote share",
        x="Turnout rate",
        y="Vote share") +
   scale_color_discrete("Party")
  
-ggsave(file.path(config$IMG_FOLDER, "simulation-abstention.pdf"), pq)
+ggsave(file.path(config$IMG_FOLDER, "simulation-voting.pdf"), pq)

@@ -20,8 +20,8 @@ rule all:
         join(DTA_FOLDER, "BOP221.RDS"),
         join(DTA_FOLDER, "weight.RDS"),
         join(DTA_FOLDER, "predicted-partychoice.RDS"),
-        join(DTA_FOLDER, "predicted-abstention.RDS"),
-        join(DTA_FOLDER, "thr-predicted-abstention.RDS"),
+        join(DTA_FOLDER, "predicted-voting.RDS"),
+        join(DTA_FOLDER, "thr-predicted-voting.RDS"),
         join(DTA_FOLDER, "individual-behavior.RDS"),
         join(DTA_FOLDER, "estimated-vote-share.RDS"),
         join(DTA_FOLDER, "vote-share-district.RDS"),
@@ -59,8 +59,8 @@ rule expected_behavior:
                models=models,
                exts=exts),
         join(DTA_FOLDER, "predicted-partychoice.RDS"),        
-        join(DTA_FOLDER, "predicted-abstention.RDS"),
-        join(DTA_FOLDER, "thr-predicted-abstention.RDS")
+        join(DTA_FOLDER, "predicted-voting.RDS"),
+        join(DTA_FOLDER, "thr-predicted-voting.RDS")
         
     shell:
         "Rscript {input.cmd}"
@@ -70,8 +70,8 @@ rule vote_shares:
         join(DTA_FOLDER, "BOP221.RDS"),
         join(DTA_FOLDER, "weight.RDS"),
         join(DTA_FOLDER, "predicted-partychoice.RDS"),
-        join(DTA_FOLDER, "predicted-abstention.RDS"),
-        join(DTA_FOLDER, "thr-predicted-abstention.RDS"),
+        join(DTA_FOLDER, "predicted-voting.RDS"),
+        join(DTA_FOLDER, "thr-predicted-voting.RDS"),
         cmd=join(SRC_FOLDER, "vote-shares.R")
     output:
         join(DTA_FOLDER, "individual-behavior.RDS"),

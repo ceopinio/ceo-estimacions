@@ -6,11 +6,6 @@
 ## cases, stores the predicted behavior for each respondent regardless
 ## of the answer they provided.
 
-## The script is designed to run in a parallel socket cluster. The IPs
-## for the workers are expected to be stored in an Ansible inventory
-## file. The main machine communicates with the workers through ports
-## XXXX
-
 set.seed(314965)
 
 library(yaml)
@@ -20,13 +15,12 @@ library(dplyr)
 library(caret); library(xgboost)
 library(stringi)
 library(pROC)
-library(doParallel)
 
 ## ---------------------------------------- 
 ## Read in data and configuration
 
-config <- read_yaml("./config/config.yaml")
-bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
+config <- read_yaml("./config/config.yaml"); attach(config)
+bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 
 ## Number of folds and repeats for repeated cv
 FOLDS <- 5
@@ -35,29 +29,15 @@ REPEATS <- 5
 ## ---------------------------------------- 
 ## Cluster configuration
 
+source(file.path(SRC_FOLDER, "cluster.R"))
+
 cluster <- FALSE
-if (file.exists("./ansible/inventory")) cluster <- TRUE
+if (file.exists(ANSIBLE_INVENTORY)) cluster <- TRUE
 
 if (cluster) {
-  inventory <- read_yaml("./ansible/inventory")
-  sshkey <- inventory$droplet$vars$ansible_ssh_private_key_file
-  workersips <- names(inventory$droplet$hosts)
-  localhostip <- read_yaml("./ansible/localhost")
-
-  ## Make cluster
-  cl <- makePSOCKcluster(names=c("localhost", workersips),
-                        master=localhostip,
-                        user="root",
-                        homogeneous=FALSE,
-                        useXDR=FALSE,
-                        outfile="cluster-log.txt",
-                        rscript="/usr/bin/Rscript",
-                        rshopts=c("-o", "StrictHostKeyChecking=no",
-                                  "-o", "IdentitiesOnly=yes",
-                                  "-i", sshkey))
-  
+  cl <- set_cluster()
   registerDoParallel(cl)
-} 
+}
 
 ## ---------------------------------------- 
 ## Party choice model
@@ -79,7 +59,7 @@ control_partychoice <- trainControl(method="repeatedcv",
 fit_partychoice <- train(as.factor(intention) ~ .,
                         data=droplevels(subset(bop,
                                                subset=!is.na(bop$intention),
-                                               select= -c(id, abstention))),
+                                               select= -c(id, abstention, provincia))),
                         method="xgbTree", 
                         trControl=control_partychoice,
                         tuneGrid=grid_partychoice,
@@ -90,8 +70,8 @@ fit_partychoice <- train(as.factor(intention) ~ .,
 
 ## Save model
 m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
-xgb.save(m, fname=file.path(config$MDL_FOLDER, "model-partychoice.xgb"))
-saveRDS(fit_partychoice, file.path(config$MDL_FOLDER, "model-partychoice.RDS"))
+xgb.save(m, fname=file.path(MDL_FOLDER, "model-partychoice.xgb"))
+saveRDS(fit_partychoice, file.path(MDL_FOLDER, "model-partychoice.RDS"))
 
 ## Predicted party choice
 p_partychoice <- predict(fit_partychoice,
@@ -104,7 +84,7 @@ bop <- droplevels(bop)
 
 saveRDS(data.frame("id"=bop$id,
                    "p_partychoice"=p_partychoice),
-        file.path(config$DTA_FOLDER, "predicted-partychoice.RDS"))
+        file.path(DTA_FOLDER, "predicted-partychoice.RDS"))
 
 
 ## ---------------------------------------- 
@@ -119,7 +99,7 @@ pq <- p +
   scale_fill_gradient(low="white", high="#009194") +
   labs(title="Confusion matrix (% relative to reference)", x="Reference", y="Prediction") +
   theme(axis.text.x = element_text(angle=10, vjust=1, hjust=1))
-ggsave(file.path(config$IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
+ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 
 ## ---------------------------------------- 
 ## Abstention model
@@ -153,8 +133,8 @@ fit_abstention <- train(as.factor(abstention) ~ .,
 
 ## Save model
 m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)
-xgb.save(m, fname=file.path(config$MDL_FOLDER, "model-abstention.xgb"))
-saveRDS(fit_abstention, file.path(config$MDL_FOLDER, "model-abstention.RDS"))
+xgb.save(m, fname=file.path(MDL_FOLDER, "model-abstention.xgb"))
+saveRDS(fit_abstention, file.path(MDL_FOLDER, "model-abstention.RDS"))
 
 ## Predicted abstention
 bop$p_voting <- predict(fit_abstention,
@@ -164,7 +144,7 @@ bop$p_voting <- predict(fit_abstention,
 
 saveRDS(data.frame("id"=bop$id,
                    "p_voting"=bop$p_voting),
-        file.path(config$DTA_FOLDER, "predicted-voting.RDS"))
+        file.path(DTA_FOLDER, "predicted-voting.RDS"))
 
 ## Probability threshold to decide if voter abstains
 probs <- seq(0, 1, by=0.005)
@@ -177,7 +157,7 @@ ths <- thresholder(fit_abstention,
 prob <- ths[which.min(ths$Dist), "prob_threshold"]
 
 ## Save probability 
-saveRDS(prob, file.path(config$DTA_FOLDER, "thr-predicted-voting.RDS"))
+saveRDS(prob, file.path(DTA_FOLDER, "thr-predicted-voting.RDS"))
 
 ## ---------------------------------------- 
 ## ROC curve
@@ -200,7 +180,7 @@ pq <- p + geom_point(shape=1) +
        x="False positive rate",
        y="True positive rate")
 
-ggsave(file.path(config$IMG_FOLDER, "roc-abstention.pdf"), pq)
+ggsave(file.path(IMG_FOLDER, "roc-abstention.pdf"), pq)
 
 ## ---------------------------------------- 
 ## Clean up

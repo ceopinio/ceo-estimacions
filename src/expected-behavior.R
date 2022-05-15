@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
-## Assigns a behavior to all undecided/nonrespondents (party choice and
-## decision to abstain). The vote choice model assigns a party. The
-## model for the decision assigns a produces probabilities. In both
+## Assigns a behavior to all undecided/nonrespondents (party choice
+## and decision to abstain). The vote choice model assigns a party.
+## The model for the decision to vote produces probabilities. In both
 ## cases, stores the predicted behavior for each respondent regardless
 ## of the answer they provided.
 
@@ -29,7 +29,7 @@ REPEATS <- 5
 ## ---------------------------------------- 
 ## Cluster configuration
 
-source(file.path(SRC_FOLDER, "cluster.R"))
+source(file.path(SRC_FOLDER, "auxiliary.R"))
 
 cluster <- FALSE
 if (file.exists(ANSIBLE_INVENTORY)) cluster <- TRUE
@@ -42,12 +42,12 @@ if (cluster) {
 ## ---------------------------------------- 
 ## Party choice model
 
-grid_partychoice <- expand.grid(eta=c(.1, .05, .01, .005),
+grid_partychoice <- expand.grid(eta=c(.01, .005, .001),
                                max_depth=c(1, 2, 3, 4, 5),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=c(.5, 1, 2, 5, 7, 10, 15)*100,
+                               nrounds=c(1, 2, 5, 7, 10, 15)*100,
                                gamma=0)
 
 control_partychoice <- trainControl(method="repeatedcv",
@@ -97,7 +97,8 @@ pq <- p +
   geom_tile() +
   geom_text(aes(label=round(Freq, 2))) +
   scale_fill_gradient(low="white", high="#009194") +
-  labs(title="Confusion matrix (% relative to reference)", x="Reference", y="Prediction") +
+  labs(title="Confusion matrix (% relative to reference)",
+       x="Reference", y="Prediction") +
   theme(axis.text.x = element_text(angle=10, vjust=1, hjust=1))
 ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 
@@ -109,7 +110,7 @@ grid_abstention <- expand.grid(eta=c(.01, .005, .001),
                               min_child_weight=1,
                               subsample=0.8,
                               colsample_bytree=0.8,
-                              nrounds=c(1, 2, 5, 7, 10, 15)*100,
+                               nrounds=c(1, 2, 5, 7, 10, 15)*100,
                               gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",
@@ -127,8 +128,9 @@ fit_abstention <- train(as.factor(abstention) ~ .,
                        trControl=control_abstention,
                        tuneGrid=grid_abstention,
                        na.action=na.pass,
+                       probMethod="Bayes",
                        allowParallel=TRUE,
-                       verbose=FALSE,                        
+                       verbose=FALSE,
                        verbosity=0)
 
 ## Save model
@@ -145,6 +147,9 @@ bop$p_voting <- predict(fit_abstention,
 saveRDS(data.frame("id"=bop$id,
                    "p_voting"=bop$p_voting),
         file.path(DTA_FOLDER, "predicted-voting.RDS"))
+
+## Calibration
+cal <- calibration(obs ~ Will.vote, data=fit_abstention$pred)
 
 ## Probability threshold to decide if voter abstains
 probs <- seq(0, 1, by=0.005)

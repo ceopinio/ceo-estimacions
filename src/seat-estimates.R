@@ -13,8 +13,8 @@ library(dplyr)
 
 N <- 2000 ## Sample size to be used in simulation
 
-config <- read_yaml("./config/config.yaml")
-district_share <- readRDS(file.path(config$DTA_FOLDER, "vote-share-district.RDS"))
+config <- read_yaml("./config/config.yaml"); attach(config)
+district_share <- readRDS(file.path(DTA_FOLDER, "vote-share-district.RDS"))
 
 district_share <- as.data.frame(district_share)
 
@@ -41,7 +41,7 @@ simulated_seats <- simulate(district_share,
                             moe(district_share, N, 0.95),
                             names=party_names)
 simulated_seats <- as.data.frame(simulated_seats)
-saveRDS(simulated_seats, file.path(config$DTA_FOLDER, "seats-simulation.RDS"))
+saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats-simulation.RDS"))
 
 ## Keep 5, 50, and 95 percentile of the simulated distribution
 simulated_seats <- simulated_seats |>
@@ -51,4 +51,4 @@ simulated_seats <- simulated_seats |>
             hi95=quantile(total, .95))
 
 ## Save data
-saveRDS(simulated_seats, file.path(config$DTA_FOLDER, "seats.RDS"))
+saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats.RDS"))

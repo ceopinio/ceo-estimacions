@@ -13,8 +13,12 @@ library(stringi)
 ## ---------------------------------------- 
 ## Read in data and configuration
 
-config <- read_yaml("config/config.yaml")
-bop <- read_dta(file.path(config$RAW_DTA_FOLDER, "BOP221.dta"))
+config <- read_yaml("config/config.yaml"); attach(config)
+bop <- read_dta(file.path(RAW_DTA_FOLDER, "BOP221.dta"))
+
+## ---------------------------------------- 
+## Read in auxiliary functions
+source(file.path(SRC_FOLDER, "auxiliary.R"))
 
 ## ---------------------------------------- 
 ## Assign ID to data
@@ -42,16 +46,18 @@ bop <- bop |>
                   "CAT_0_10",
                   "ESP_0_10",
                   "CONFI_PARTITS",
-                  "CONFI_UE"), ~ if_else(.x >= 98,
+                  "CONFI_UE",
+                  "CONFI_GOV_CAT",
+                  "CONFI_GOV_ESP"), ~ if_else(.x >= 98,
                                          NA_real_,
                                          as.numeric(.x))), ## Spatial variables
          across(c("GENERE",
                   "EDAT_GR",
-                  "ESTUDIS_1_15",
                   "RELIGIO_FREQ",
-                  "INGRESSOS_1_15",
                   "SIT_LAB",
                   "ACTITUD_INDEPENDENCIA",
+                  "ACTITUD_AUTORITAT",                  
+                  "RELACIONS_CAT_ESP",
                   "MONARQUIA_REPUBLICA",
                   "VOT_DRET_DEURE",
                   "LLENGUA_PRIMERA",
@@ -68,7 +74,18 @@ bop <- bop |>
          across(matches("VAL_[A-Z]{1}_[A-Z]{1,}",
                         perl=TRUE), ~ if_else(.x >= 98,
                                               NA_real_,
-                                              as.numeric(.x)))) |> ## Evaluation
+                                              as.numeric(.x))), ## Evaluation
+         estudis_1_5=case_when(ESTUDIS_1_15 %in% c(1, 2, 3) ~ 1L, # Less than primary
+                               ESTUDIS_1_15 %in% c(4) ~ 2L, # Secondary
+                               ESTUDIS_1_15 %in% c(5, 6) ~ 3L, # High School
+                               ESTUDIS_1_15 %in% c(7, 8, 9) ~ 4L, ## Some College
+                               ESTUDIS_1_15 %in% c(10:80) ~ 5L, ## Above
+                               ESTUDIS_1_15 >= 98 ~ NA_integer_),
+         ingressos_1_5=case_when(INGRESSOS_1_15 %in% c(1:5) ~ 1L, ## Less than 1000,
+                                 INGRESSOS_1_15 %in% c(6:8) ~ 2L, ## Less than 2000,
+                                 INGRESSOS_1_15 %in% c(9:10) ~ 3L, ## Less than 3000
+                                 INGRESSOS_1_15 %in% c(11:15) ~ 4L, ## More than 3000
+                                 INGRESSOS_1_15 >= 98 ~ NA_integer_)) |>
   select("id",
          "intention",
          "recall",
@@ -80,14 +97,18 @@ bop <- bop |>
          "ESP_0_10",
          "CONFI_PARTITS",
          "CONFI_UE",
+         "CONFI_GOV_CAT",
+         "CONFI_GOV_ESP",
          # Categorical variables
          "GENERE",
          "EDAT_GR",
-         "ESTUDIS_1_15",
+         "estudis_1_5",
          "RELIGIO_FREQ",
-         "INGRESSOS_1_15",
+         "ingressos_1_5",
          "SIT_LAB",
          "ACTITUD_INDEPENDENCIA",
+         "ACTITUD_AUTORITAT",         
+         "RELACIONS_CAT_ESP",
          "MONARQUIA_REPUBLICA",
          "VOT_DRET_DEURE",         
          "LLENGUA_PRIMERA",
@@ -97,25 +118,20 @@ bop <- bop |>
          "INF_POL_TV_FREQ",
          "INF_POL_XARXES_FREQ",
          "PROVINCIA",
+         "HABITAT",
          # Knowledge and evaluation
          starts_with("CONEIX_"),
          matches("VAL_[A-Z]{1}_[A-Z]{1,}", perl=TRUE)) |>
   mutate(across(-matches("0_10|VAL_[A-Z]{1}_[A-Z]{1,}|CONFI_",
                          perl=TRUE), ~ as_factor(.))) |> ## Most vars are factors
-  rename_with(tolower)
+  rename_with(tolower) ## Work with namevars in lowercase
 
 ## ---------------------------------------- 
 ## Clean up party names
 
-## Eliminate accents and punctuation so that they can be used as
-## regular R factors
-levels(bop$intention) <- stri_trans_general(levels(bop$intention),
-                                            "latin-ascii") 
-levels(bop$intention) <- stri_replace_all_charclass(levels(bop$intention),
-                                                    "[[:punct:]]", "")
-levels(bop$intention) <- stri_replace_all_charclass(levels(bop$intention),
-                                                    "[[:whitespace:]]", ".")
+bop$intention <- clean_party_name(bop$intention)
+bop$recall <- clean_party_name(bop$recall)
 
 ## ---------------------------------------- 
 ## Save data
-saveRDS(bop, file.path(config$DTA_FOLDER, "BOP221.RDS"))
+saveRDS(bop, file.path(DTA_FOLDER, "BOP221.RDS"))

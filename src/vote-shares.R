@@ -14,16 +14,16 @@ library(ggplot2); theme_set(theme_bw())
 ## ---------------------------------------- 
 ## Read in data and configuratio
 
-config <- read_yaml("./config/config.yaml")
-bop <- readRDS(file.path(config$DTA_FOLDER, "BOP221.RDS"))
+config <- read_yaml("./config/config.yaml"); attach(config)
+bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 
 ## Recall weights
-recall_weights <- readRDS(file.path(config$DTA_FOLDER, "weight.RDS"))
+recall_weights <- readRDS(file.path(DTA_FOLDER, "weight.RDS"))
 
 ## Predicted behavior
-p_partychoice <- readRDS(file.path(config$DTA_FOLDER, "predicted-partychoice.RDS"))
-p_voting <- readRDS(file.path(config$DTA_FOLDER, "predicted-voting.RDS"))
-thr_voting <- readRDS(file.path(config$DTA_FOLDER, "thr-predicted-voting.RDS"))
+p_partychoice <- readRDS(file.path(DTA_FOLDER, "predicted-partychoice.RDS"))
+p_voting <- readRDS(file.path(DTA_FOLDER, "predicted-voting.RDS"))
+thr_voting <- readRDS(file.path(DTA_FOLDER, "thr-predicted-voting.RDS"))
 
 ## Join all results
 bop <- merge(bop, recall_weights, by="id") 
@@ -38,17 +38,17 @@ bop$p_intention <- bop$intention
 ## If they did not report a party choice, assign the predicted 
 bop$p_intention[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 ## If they declare they will not vote, use that behavior
-bop$p_intention[bop$voting == "Will.not.vote"] <- "No.votaria"
+bop$p_intention[bop$abstention == "Will.not.vote"] <- "No.votaria"
 ## Assign to voting all respondents with low predicted probability
 ## of voting (relative to cutoff)
-bop$p_intention[bop$p_voting < .91] <- "No.votaria"
+bop$p_intention[bop$p_voting < thr_voting] <- "No.votaria"
 bop$p_intention <- droplevels(bop$p_intention)
 
 ## Save results 
 saveRDS(data.frame("id"=bop$id,
                    "p_intention"=bop$p_intention,
                    "weight"=bop$weight),
-        file.path(config$DTA_FOLDER, "individual-behavior.RDS"))
+        file.path(DTA_FOLDER, "individual-behavior.RDS"))
 
 ## ---------------------------------------- 
 ## Estimated vote shares
@@ -68,7 +68,7 @@ estimates <- merge(estimates, westimates, by="p_intention")
 names(estimates)[names(estimates) == "p_intention"] <- "party"
 
 ## Save data
-saveRDS(estimates, file.path(config$DTA_FOLDER, "estimated-vote-share.RDS"))
+saveRDS(estimates, file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 
 ## ---------------------------------------- 
 ## Simulated effect of turnout rates
@@ -116,7 +116,7 @@ pq <- p + geom_line() +
   geom_vline(xintercept=thr_voting, linetype=2) +
   lims(y=c(0, 1), x=c(0, 1))
 
-ggsave(file.path(config$IMG_FOLDER, "pvoting-turnout.pdf"), pq)
+ggsave(file.path(IMG_FOLDER, "pvoting-turnout.pdf"), pq)
 
 ## Because we are keeping everyone who declared to abstain with their
 ## reported choice, the maximum turnout is the declared turnout
@@ -127,4 +127,4 @@ pq <- p + geom_line() +
        y="Vote share") +
   scale_color_discrete("Party")
  
-ggsave(file.path(config$IMG_FOLDER, "simulation-voting.pdf"), pq)
+ggsave(file.path(IMG_FOLDER, "simulation-voting.pdf"), pq)

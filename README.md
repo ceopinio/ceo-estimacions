@@ -129,16 +129,39 @@ use the same structure (including similar RHS variables) and very
 similar code. It is important to keep in mind that these models may
 take several hours to run. 
 
-To reduce training time, a cluster can be used -- but it is not
-necessary. The project defines a simple `set_cluster` function to
-create a parallel sock cluster that wraps around `makePSOCKcluster`.
-The `set_cluster` function as it's currently written, reads some
-configuration variables from `config/config.yaml` with the IP of the
-remote machines (declared in an Ansible inventory file) and the IP of
-the local machine (in a plain text file). If you are not using Ansible
-to stand up the remote machines, but want to execute the code
-remotely, you may want to edit `set_cluster`. In particular, you will
-want to edit it so that it consumes the following information:
+There are two options to reduce training time. One is to reduce the
+size of the grid used for parameter search. For instance, the
+following snippet defines a search grid with 180 search points
+
+```r
+grid_partychoice <- expand.grid(eta=c(.01, .005, .001),
+                                max_depth=c(1, 2, 3),
+                                min_child_weight=1,
+                                subsample=0.8,
+                                colsample_bytree=0.8,
+                                nrounds=seq(1, 15, length.out=20)*100,
+                                gamma=0)
+```
+
+The grid is then run 5 times over each of the 5 folds (see the
+variables `FOLDS` and `REPEATS` at the top of the scripts with
+models). That means 4,500 runs of a given model. It is possible to
+make the size of the grid smaller by more carefully selecting or
+searching some of the parameters above -- perhaps setting `eta` to a
+single, small value and focusing on identifying good values of
+`nrounds`.
+
+Another possibility is to run the code on a more powerful machine or
+in a cluster -- although is not necessary. The project defines a
+simple `set_cluster` function to create a parallel sock cluster that
+wraps around `makePSOCKcluster`. The `set_cluster` function as it's
+currently written, reads some configuration variables from
+`config/config.yaml` with the IP of the remote machines (declared in
+an Ansible inventory file) and the IP of the local machine (in a plain
+text file). If you are not using Ansible to stand up the remote
+machines, but want to execute the code remotely, you may want to edit
+`set_cluster`. In particular, you will want to edit it so that it
+consumes the following information:
 
 ```r
 cl <- makePSOCKcluster(names=IP_OF_THE_REMOTE_MACHINES,

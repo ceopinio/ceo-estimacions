@@ -43,11 +43,11 @@ if (cluster) {
 ## Party choice model
 
 grid_partychoice <- expand.grid(eta=c(.01, .005, .001),
-                               max_depth=c(1, 2, 3, 4, 5),
+                               max_depth=c(1, 2, 3),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=c(1, 2, 5, 7, 10, 15)*100,
+                               nrounds=seq(1, 15, length.out=20)*100,
                                gamma=0)
 
 control_partychoice <- trainControl(method="repeatedcv",
@@ -59,7 +59,7 @@ control_partychoice <- trainControl(method="repeatedcv",
 fit_partychoice <- train(as.factor(intention) ~ .,
                         data=droplevels(subset(bop,
                                                subset=!is.na(bop$intention),
-                                               select= -c(id, abstention, provincia))),
+                                               select= -c(id, abstention))),
                         method="xgbTree", 
                         trControl=control_partychoice,
                         tuneGrid=grid_partychoice,
@@ -106,12 +106,12 @@ ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 ## Abstention model
 
 grid_abstention <- expand.grid(eta=c(.01, .005, .001),
-                              max_depth=c(1, 2, 3, 4, 5),
-                              min_child_weight=1,
-                              subsample=0.8,
-                              colsample_bytree=0.8,
-                               nrounds=c(1, 2, 5, 7, 10, 15)*100,
-                              gamma=0)
+                               max_depth=c(1, 2, 3),
+                               min_child_weight=1,
+                               subsample=0.8,
+                               colsample_bytree=0.8,
+                               nrounds=seq(1, 15, length.out=20)*100,
+                               gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",
                                   number=FOLDS,

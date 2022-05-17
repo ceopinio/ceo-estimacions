@@ -18,7 +18,7 @@ bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 
 ## Number of folds and repeats for repeated cv
 FOLDS <- 5
-REPEATS <- 5
+REPEATS <- 1
 
 ## ---------------------------------------- 
 ## Cluster configuration
@@ -77,19 +77,19 @@ bop$recall <- droplevels(bop$recall)
 ## Predictive model
 
 grid_recall <- expand.grid(eta=c(.01, .005, .001),
-                           max_depth=c(1, 2, 3, 4, 5),
-                           min_child_weight=1,
-                           subsample=0.8,
-                           colsample_bytree=0.8,
-                           nrounds=c(1, 2, 5, 7, 10, 15)*100,
-                           gamma=0)
+                               max_depth=c(1, 2, 3),
+                               min_child_weight=1,
+                               subsample=0.8,
+                               colsample_bytree=0.8,
+                               nrounds=seq(1, 15, length.out=20)*100,
+                               gamma=0)
 
 control_recall <- trainControl(method="repeatedcv",
-                                  number=FOLDS,
-                                  repeats=REPEATS,
-                                  classProbs=TRUE,
-                                  summaryFunction=multiClassSummary,
-                                  savePredictions=TRUE)
+                               number=FOLDS,
+                               repeats=REPEATS,
+                               classProbs=TRUE,
+                               summaryFunction=multiClassSummary,
+                               savePredictions=TRUE)
 
 fit_recall <- train(as.factor(recall) ~ .,
                     data=droplevels(subset(bop,

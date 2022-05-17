@@ -28,7 +28,8 @@ set_cluster <- function() {
   if (file.exists(CLUSTER_LOG)) file.remove(CLUSTER_LOG)
   
   ## Make cluster
-  cl <- makePSOCKcluster(names=c("localhost", workersips),
+
+  cl <- makePSOCKcluster(names=rep(workersips, 2),
                          master=localhostip,
                          user="root",
                          homogeneous=FALSE,

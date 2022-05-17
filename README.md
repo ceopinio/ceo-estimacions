@@ -1,6 +1,14 @@
-# Structure of the code
+# Vote and seat estimation using Barometre data
 
-- `src` contains all the R scripts
+This project contains code to estimate vote shares and seats
+distributions using CEO Barometre data. The code is designed to be run
+from the `Snakefile` (see section on [execution](#execution)) but it
+can also be run interactively.
+
+## Structure of the code
+
+- `src` contains all the R scripts. The purpose of each script is
+  [listed below](#description-of-the-scripts).
 - `dta` will host all the relevant results created by the scripts as
   well as the input data. Note that the scripts expect taht the raw
   data is expected to live in `dta/raw-dta`. All the estimated models
@@ -9,19 +17,19 @@
 - `config` includes a `config.yaml` file that defines configuration
   variables that are used throughout the code. Most of these variables
   are just the locations/names of the relevant folders. It also
-  defines a few variables that can be used to run the code in a
-  cluster (see below).
+  defines a few variables that can be used [to run the code in a
+  cluster](#the-machine-learning-models).
 - `ansible` contains some files that are used to stand up a remote
   machine on which to execute the code. You can safely ignore this
   folder if you are planning to run the code in your local machine or
   if you have a preferred way of setting up a cluster.
   
-# Description of the scripts
+## Description of the scripts
 
 The project is structured in the following way. Each script performs a
-single task (described below). All the scripts read in some data and
-write out the results of the corresponding operations. The input and
-output data for each script is documented in the `Snakefile` file.
+single task. All the scripts read in some data and write out the
+results of the corresponding operations. The input and output data for
+each script is documented in the `Snakefile` file.
 
 Note that all the scripts read from `config/config.yaml`. This is a
 YAML configuration that sets the main paths that are used in the
@@ -71,7 +79,7 @@ environment for ease of use.
 The `Snakefile` will ensure that the scripts are executed in the
 correct order. 
 
-# Execution
+## Execution
 
 The project can be executed via the `Snakefile` which will run all the
 scripts in the correct order. Make sure that `Snakefile` is installed
@@ -106,7 +114,7 @@ Rscript src/district-shares.R
 Rscript src/seat-estimates.R
 ```
 
-# The machine learning models
+## The machine learning models
 
 The project uses three machine learning models. One to estimate past
 behavior, another to estimate expected party choice, and a third one

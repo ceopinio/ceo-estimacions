@@ -71,7 +71,9 @@ environment for ease of use.
    Catalonia-level shares.
   
 6. `seat-estimates.R` uses the district-level vote shares to simulate
-  the distribution of seats for each party. 
+  the distribution of seats for each party. This script uses the
+  [package `ceobarometre`](https://github.com/griverorz/ceo-barometre)
+  which needs to be installed separately.
   
 The script `auxiliary.R` defines some helper functions that are used
 throughout the project.
@@ -82,8 +84,12 @@ correct order.
 ## Execution
 
 The project can be executed via the `Snakefile` which will run all the
-scripts in the correct order. Make sure that `Snakefile` is installed
-in your machine:
+scripts in the correct order. More information about this file can be
+found in the [`Snakemake`
+documentation.](https://snakemake.readthedocs.io/en/stable/tutorial/short.html)
+`Make sure that `Snakemake` [is installed in your
+machine,](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html)
+for instance, using
 
 ```bash
 pip3 install snakemake
@@ -123,16 +129,16 @@ use the same structure (including similar RHS variables) and very
 similar code. It is important to keep in mind that these models may
 take several hours to run. 
 
-To reduce training time, a cluster can be used. The project defines a
-simple `set_cluster` function to create a parallel sock cluster that
-wraps around `makePSOCKcluster`. The `set_cluster` function as it's
-currently written, reads some configuration variables from
-`config/config.yaml` with the IP of the remote machines (declared in
-an Ansible inventory file) and the IP of the local machine (in a plain
-text file). If you are not using Ansible to stand up the remote
-machines, but what to execute the code remotely, you may want to edit
-`set_cluster`. In particular, you will want to edit it so that it
-consumes the following information:
+To reduce training time, a cluster can be used -- but it is not
+necessary. The project defines a simple `set_cluster` function to
+create a parallel sock cluster that wraps around `makePSOCKcluster`.
+The `set_cluster` function as it's currently written, reads some
+configuration variables from `config/config.yaml` with the IP of the
+remote machines (declared in an Ansible inventory file) and the IP of
+the local machine (in a plain text file). If you are not using Ansible
+to stand up the remote machines, but want to execute the code
+remotely, you may want to edit `set_cluster`. In particular, you will
+want to edit it so that it consumes the following information:
 
 ```r
 cl <- makePSOCKcluster(names=IP_OF_THE_REMOTE_MACHINES,

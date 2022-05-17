@@ -73,8 +73,8 @@ environment for ease of use.
 6. `seat-estimates.R` uses the district-level vote shares to simulate
   the distribution of seats for each party. 
   
-7. `auxiliary.R` defines some helper functions that are used
-   throughout the project.
+The script `auxiliary.R` defines some helper functions that are used
+throughout the project.
 
 The `Snakefile` will ensure that the scripts are executed in the
 correct order. 

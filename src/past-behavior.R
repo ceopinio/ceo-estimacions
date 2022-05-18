@@ -21,7 +21,7 @@ bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 ## Cluster configuration
 
 source(file.path(SRC_FOLDER, "auxiliary.R"))
-cl <- registerDoParallel(detectCores() - 1)
+cl <- makeCluster(detectCores() - 1)
 
 ## ---------------------------------------- 
 ## Results of the last election

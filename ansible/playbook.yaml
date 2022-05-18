@@ -5,7 +5,10 @@
         repo: git@github.com:griverorz/ceo-barometer-src.git
         version: main
         dest: /opt/ceobarometer
+        force: yes
       become: no
+      tags:
+        - git
 
     - name: Add keyserver for R
       become: true

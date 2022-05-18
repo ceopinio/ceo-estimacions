@@ -1,5 +1,12 @@
 - hosts: all
-  tasks:
+  tasks:    
+    - name: Clone the repository
+      git:
+        repo: git@github.com:griverorz/ceo-barometer-src.git
+        version: main
+        dest: /opt/ceobarometer
+      become: no
+
     - name: Add keyserver for R
       become: true
       apt_key:
@@ -12,17 +19,23 @@
         state: present
         update_cache: True
        
-    - name: Install dependencies
+    - name: Install system dependencies
       become: true
       apt:
-        name: ['gcc', 'emacs', 'libomp-dev', 'r-base']
+        name: ['gcc', 'emacs', 'libomp-dev', 'r-base', 'python3', 'python3-pip']
         state: latest
-  
+
+    - name: Install Snakemake
+      pip:
+        name:
+          - Snakemake
+          
     - name: Copy Rprofile, Renviron and data files
       copy: src={{ item.src }} dest={{ item.dest }}
       with_items:
-        - { src: 'Rprofile', dest: '~/.Rprofile' }
-        - { src: 'Renviron', dest: '~/.Renviron' }
+        - { src: 'Rprofile', dest: '$HOME/.Rprofile' }
+        - { src: 'Renviron', dest: '$HOME/.Renviron' }
+        - { src: '../dta/raw-dta/', dest: '/opt/ceobarometer/dta/raw-dta/' }
       
     - name: Set R library
       file:
@@ -34,7 +47,13 @@
     - name: Install R packages
       shell: Rscript -e "install.packages(\"{{ item }}\")"
       with_items:
+        - haven
+        - yaml
+        - survey
+        - labelled
         - caret
+        - dplyr
         - xgboost
+        - stringi
+        - pROC
         - MLmetrics
-        - doParallel

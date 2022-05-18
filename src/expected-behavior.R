@@ -28,7 +28,7 @@ bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 
 source(file.path(SRC_FOLDER, "auxiliary.R"))
 cl <- makePSOCKcluster(detectCores() - 1)
-registerDoParallel()
+registerDoParallel(cl)
 
 ## ---------------------------------------- 
 ## Party choice model

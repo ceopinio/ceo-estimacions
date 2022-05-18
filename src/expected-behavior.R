@@ -15,6 +15,7 @@ library(dplyr)
 library(caret); library(xgboost)
 library(stringi)
 library(pROC)
+library(doParallel)
 
 ## ---------------------------------------- 
 ## Read in data and configuration
@@ -24,30 +25,31 @@ bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 
 ## Number of folds and repeats for repeated cv
 FOLDS <- 5
-REPEATS <- 5
+REPEATS <- 1
 
 ## ---------------------------------------- 
 ## Cluster configuration
 
 source(file.path(SRC_FOLDER, "auxiliary.R"))
+cl <- registerDoParaller(detectCores() - 1)
 
-cluster <- FALSE
-if (file.exists(ANSIBLE_INVENTORY)) cluster <- TRUE
+## cluster <- FALSE
+## if (file.exists(ANSIBLE_INVENTORY)) cluster <- TRUE
 
-if (cluster) {
-  cl <- set_cluster()
-  registerDoParallel(cl)
-}
+## if (cluster) {
+##   cl <- set_cluster()
+##   registerDoParallel(cl)
+## }
 
 ## ---------------------------------------- 
 ## Party choice model
 
-grid_partychoice <- expand.grid(eta=c(.01, .005, .001),
+grid_partychoice <- expand.grid(eta=c(.01, .005),
                                max_depth=c(1, 2, 3),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=seq(1, 15, length.out=20)*100,
+                               nrounds=seq(5, 15, length.out=10)*100,
                                gamma=0)
 
 control_partychoice <- trainControl(method="repeatedcv",
@@ -105,12 +107,12 @@ ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 ## ---------------------------------------- 
 ## Abstention model
 
-grid_abstention <- expand.grid(eta=c(.01, .005, .001),
+grid_abstention <- expand.grid(eta=c(.01, .005),
                                max_depth=c(1, 2, 3),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=seq(1, 15, length.out=20)*100,
+                               nrounds=seq(5, 15, length.out=10)*100,
                                gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",
@@ -190,4 +192,5 @@ ggsave(file.path(IMG_FOLDER, "roc-abstention.pdf"), pq)
 ## ---------------------------------------- 
 ## Clean up
 
-if (cluster) stopCluster(cl)
+## if (cluster)
+stopCluster(cl)

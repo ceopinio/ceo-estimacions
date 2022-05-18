@@ -17,22 +17,11 @@ library(doParallel)
 config <- read_yaml("./config/config.yaml"); attach(config)
 bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 
-## Number of folds and repeats for repeated cv
-FOLDS <- 5
-REPEATS <- 1
-
 ## ---------------------------------------- 
 ## Cluster configuration
 
 source(file.path(SRC_FOLDER, "auxiliary.R"))
 cl <- registerDoParallel(detectCores() - 1)
-## cluster <- FALSE
-## if (file.exists(ANSIBLE_INVENTORY)) cluster <- TRUE
-
-## if (cluster) {
-##   cl <- set_cluster()
-##   registerDoParallel(cl)
-## }
 
 ## ---------------------------------------- 
 ## Results of the last election
@@ -77,12 +66,12 @@ bop$recall <- droplevels(bop$recall)
 ## ---------------------------------------- 
 ## Predictive model
 
-grid_recall <- expand.grid(eta=c(.01, .005),
-                               max_depth=c(1, 2, 3),
+grid_recall <- expand.grid(eta=c(.01, .005, .001),
+                               max_depth=c(1, 2, 3, 4, 5),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=seq(5, 15, length.out=10)*100,
+                               nrounds=seq(1, 20, length.out=50)*100,
                                gamma=0)
 
 control_recall <- trainControl(method="repeatedcv",
@@ -143,7 +132,5 @@ saveRDS(recall_weight, file.path(DTA_FOLDER, "weight.RDS"))
 
 ## ---------------------------------------- 
 ## Clean up
-
-## if (cluster)
 
 stopCluster(cl)

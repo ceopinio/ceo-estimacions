@@ -6,6 +6,7 @@
         version: main
         dest: /opt/ceobarometer
         force: yes
+        accept_hostkey: yes
       become: no
       tags:
         - git

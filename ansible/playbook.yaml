@@ -60,3 +60,4 @@
         - stringi
         - pROC
         - MLmetrics
+        - doParallel

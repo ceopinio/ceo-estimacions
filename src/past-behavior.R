@@ -25,7 +25,7 @@ REPEATS <- 1
 ## Cluster configuration
 
 source(file.path(SRC_FOLDER, "auxiliary.R"))
-cl <- registerDoParaller(detectCores() - 1)
+cl <- registerDoParallel(detectCores() - 1)
 ## cluster <- FALSE
 ## if (file.exists(ANSIBLE_INVENTORY)) cluster <- TRUE
 

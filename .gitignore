@@ -11,6 +11,10 @@ ansible/inventory
 # Snakemake
 *.snakemake*
 
+# Data
+*.RDS
+*.xgb
+
 # History files
 .Rhistory
 .Rapp.history

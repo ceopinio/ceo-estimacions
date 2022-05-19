@@ -129,6 +129,18 @@ bop <- bop |>
 ## ---------------------------------------- 
 ## Clean up party names
 
+clean_party_name <- function(x) {
+  if (!is.factor(x)) {
+    stop("Party variable is expected to be a factor")
+  }
+
+  levels(x) <- stri_trans_general(levels(x), "latin-ascii") 
+  levels(x) <- stri_replace_all_charclass(levels(x), "[[:punct:]]", "")
+  levels(x) <- stri_replace_all_charclass(levels(x), "[[:whitespace:]]", ".")
+  return(x)
+  
+}
+
 bop$intention <- clean_party_name(bop$intention)
 bop$recall <- clean_party_name(bop$recall)
 

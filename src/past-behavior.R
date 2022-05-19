@@ -20,8 +20,6 @@ bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 ## ---------------------------------------- 
 ## Cluster configuration
 
-source(file.path(SRC_FOLDER, "auxiliary.R"))
-
 cl <- makePSOCKcluster(detectCores() - 1)
 registerDoParallel(cl)
 

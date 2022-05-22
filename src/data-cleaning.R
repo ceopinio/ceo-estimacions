@@ -17,10 +17,6 @@ config <- read_yaml("config/config.yaml"); attach(config)
 bop <- read_dta(file.path(RAW_DTA_FOLDER, "BOP221.dta"))
 
 ## ---------------------------------------- 
-## Read in auxiliary functions
-source(file.path(SRC_FOLDER, "auxiliary.R"))
-
-## ---------------------------------------- 
 ## Assign ID to data
 
 bop$id <- 1:nrow(bop)

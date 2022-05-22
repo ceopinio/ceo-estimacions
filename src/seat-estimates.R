@@ -23,23 +23,20 @@ district_share <- as.data.frame(district_share)
 
 ## Reshape to data.frame with parties in rows and districts in columns
 district_share <- reshape(district_share,
-                         timevar="provincia",
-                         idvar="p_intention",
-                         direction="wide")
+                          timevar="provincia",
+                          idvar="p_intention",
+                          direction="wide")
 
+district_share <- district_share[district_share$p_intention != "Altres.partits", ]
 names(district_share) <- gsub("Freq.", "", names(district_share))
-district_share <- district_share[district_share$p_intention != "No.votaria", ]
-
 party_names <- district_share$p_intention
-
-## Remove abstention and renormalize
 district_share$p_intention <- NULL
-district_shares <- apply(district_share, 2, \(x) x/sum(x))
 
 ## Simulate share distribution
 simulated_seats <- simulate(district_share,
                             moe(district_share, N, 0.95),
                             names=party_names)
+
 simulated_seats <- as.data.frame(simulated_seats)
 saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats-simulation.RDS"))
 

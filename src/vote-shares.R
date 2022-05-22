@@ -41,7 +41,7 @@ bop$p_intention[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 bop$p_intention[bop$abstention == "Will.not.vote"] <- "No.votaria"
 ## Assign to voting all respondents with low predicted probability
 ## of voting (relative to cutoff)
-bop$p_intention[(bop$p_voting < thr_voting) & is.na(bop$intention)] <- "No.votaria"
+bop$p_intention[(bop$p_voting < .91) & is.na(bop$intention)] <- "No.votaria"
 bop$p_intention <- droplevels(bop$p_intention)
 
 ## Save results 

@@ -17,6 +17,8 @@ library(doParallel)
 config <- read_yaml("./config/config.yaml"); attach(config)
 bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
 
+past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2021.csv"))
+
 ## ---------------------------------------- 
 ## Cluster configuration
 
@@ -26,25 +28,22 @@ registerDoParallel(cl)
 ## ---------------------------------------- 
 ## Results of the last election
 
-## Information comes from the English Wiki (results from Catalan Wiki
-## show some inconsistencies). Note that these results include CERA
-## but ideally they wouldn't be part of the calculation. Count data is
-## needed to compute the "Altres" category which is a combination of
-## vote for other parties, none and null.
+results <- past_results |>
+  mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits") ~
+                           "Altres.partits",
+                         TRUE ~ party)) |>
+  group_by(party) |>
+  summarize(votes=sum(votes)) |>
+  as.data.frame()
 
-past_results <- c("PPC"=109453,
-                  "ERC"=605581,
-                  "PSC"=654766,
-                  "Cs"=158606,
-                  "CUP"=189924,
-                  "Catalunya.en.Comu.Podem"=195345,
-                  "Junts.per.Catalunya"=570539,
-                  "Vox"=218121,
-                  "Altres"=116993 + 24087 + 41430, # Blanc + Nul
-                  "No.va.votar"=2739222)
+No.va.votar <- results[results$party == "Censo", "votes"] -
+  sum(results[results$party != "Censo", "votes"])
 
-past_results <- data.frame("p_recall"=names(past_results),
-                           "Freq"=past_results/sum(past_results),
+results <- rbind(results, list("No.va.votar", No.va.votar))
+results <- subset(results, party != "Censo")
+
+past_results <- data.frame("p_recall"=results$party,
+                           "Freq"=results$votes/sum(results$votes),
                            row.names=NULL)
 
 ## ---------------------------------------- 
@@ -60,6 +59,8 @@ levels(bop$recall)[is.na(levels(bop$recall))] <- "No.va.votar"
 levels(bop$recall)[levels(bop$recall) == "5"] <- "No.va.votar"
 ## Category to be predicted
 levels(bop$recall)[levels(bop$recall) == "No.ho.sap"] <- NA
+## Rename category for consistency
+levels(bop$recall)[levels(bop$recall) == "Altres"] <- "Altres.partis"
 
 bop$recall <- droplevels(bop$recall)
 

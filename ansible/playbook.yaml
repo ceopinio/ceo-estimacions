@@ -22,13 +22,17 @@
         repo: deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/
         state: present
         update_cache: True
-       
+        
     - name: Install system dependencies
       become: true
       apt:
         name: ['gcc', 'emacs', 'libomp-dev', 'r-base', 'python3', 'python3-pip']
         state: latest
 
+    - name: Install conda
+      become: true
+      shell: bash install-conda.sh
+        
     - name: Install Snakemake
       pip:
         name:

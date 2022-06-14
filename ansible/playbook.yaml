@@ -31,7 +31,7 @@
 
     - name: Install conda
       become: true
-      shell: bash install-conda.sh
+      shell: sh /opt/ceobarometer/ansible/install-conda.sh
         
     - name: Install Snakemake
       pip:

@@ -6,6 +6,7 @@
         version: main
         dest: /opt/ceobarometer
         force: yes
+        accept_hostkey: yes
       become: no
       tags:
         - git
@@ -48,16 +49,8 @@
         owner: root
       
     - name: Install R packages
-      shell: Rscript -e "install.packages(\"{{ item }}\")"
-      with_items:
-        - haven
-        - yaml
-        - survey
-        - labelled
-        - caret
-        - dplyr
-        - xgboost
-        - stringi
-        - pROC
-        - MLmetrics
-        - doParallel
+      shell: Rscript -e "install.packages('renv')"
+
+    - name: Restore from lockfile
+      shell: Rscript -e "renv::restore()"
+        

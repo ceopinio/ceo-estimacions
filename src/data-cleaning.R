@@ -134,7 +134,6 @@ clean_party_name <- function(x) {
   levels(x) <- stri_replace_all_charclass(levels(x), "[[:punct:]]", "")
   levels(x) <- stri_replace_all_charclass(levels(x), "[[:whitespace:]]", ".")
   return(x)
-  
 }
 
 bop$intention <- clean_party_name(bop$intention)

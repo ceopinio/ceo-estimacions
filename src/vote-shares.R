@@ -120,7 +120,7 @@ ggsave(file.path(IMG_FOLDER, "pvoting-turnout.pdf"), pq)
 
 ## Because we are keeping everyone who declared to abstain with their
 ## reported choice, the maximum turnout is the declared turnout
-p <- ggplot(sim, aes(x= ep, y=share, group=party, colour=party))
+p <- ggplot(sim, aes(x=ep, y=share, group=party, colour=party))
 pq <- p + geom_line() +
   labs(title="Effect of simulated turnout on vote share",
        x="Turnout rate",

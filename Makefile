@@ -40,8 +40,7 @@ bump:
 	-f $(EXTENSIONS) \
 	$(FILTERS) \
     --pdf-engine=xelatex \
-    --template $(TXT)/templates/article.latex \
-	 -H $(TXT)/templates/preamble.tex \
+    --template $(TXT)/templates/default.latex \
     --bibliography=$(BIB) \
 	$(OPTIONS) \
 	--output $@ \

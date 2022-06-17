@@ -6,7 +6,5 @@ TXT_FOLDER: "txt"
 SRC_FOLDER: "src"
 ANSIBLE_INVENTORY: "ansible/inventory"
 ANSIBLE_LOCALHOST: "ansible/localhost"
-CLUSTER_LOG: "cluster-log.txt"
-RSCRIPT_BIN: "/usr/bin/Rscript"
 FOLDS: 5
 REPEATS: 5

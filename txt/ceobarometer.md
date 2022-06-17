@@ -48,78 +48,81 @@ consecuencias institucionales (@sec:seats). En este paso, la
 dificultad técnica estará en asignar porcentajes de voto a cada
 partido en cada distrito electoral.
 
-## Estimar la decisión de votar o no {#sec:vote-propensity}
+# Estimar la decisión de votar o no {#sec:vote-propensity}
 
-Uno de los problemas mejor documentados en la literatura especializada
-es que los entrevistados tienden a sobrereportar en encuestas sus
-niveles de participación política. La explicación tradicional es que
-los entrevistados no quieren admitir delante de los entrevistadores
-que se desentienden de una actividad socialmente sancionada como votar
-[@holbrook2010]. Esta motivación probablemente afecte a votantes que
-se ven como más proclives a ilustrar virtudes cívicas
-[@bernstein2001;@hanmer2017], lo cual es otra forma de decir es
-probable que hay subgrupos de votantes que son más proclives a
+Está bien documentado que los entrevistados tienden a sobrereportar en
+encuestas sus niveles de participación política. La explicación
+tradicional es que los entrevistados no quieren admitir delante de los
+entrevistadores que se desentienden de una actividad socialmente
+sancionada como votar [@holbrook2010]. Esta motivación probablemente
+afecte a votantes que se ven como más proclives a ilustrar virtudes
+cívicas [@bernstein2001;@hanmer2017], lo cual es otra forma de decir
+es probable que hay subgrupos de votantes que son más proclives a
 exagerar su disposición. Por ejemplo, aquéllos de mayor edad o mayor
 educación, o incluso con mayor interés por la política [@hanmer2017;
-@ansolabehere2017].[^6]
- 
+@ansolabehere2017].[^6] 
+
 Una solución a este problema está, como siempre en el caso de las
 encuestas, en mejorar el enunciado de la pregunta sobre intención de
 voto. En este sentido, el trabajo de @perry1979 y su batería de ocho
 preguntas es particularmente influyente (véase @voss1995 o
 @sturgis2016) por cuanto es la base usada por la mayor parte de las
 encuestadoras anglosajonas, aún cuando su uso esté abierto a
-discrepancias [@dimock2001]
+discrepancias [@dimock2001]. Al mismo tiempo, experiencias como la de
+ANES muestran que variaiones sobre las preguntas tienen en realidad un
+efecto pequeño, lo cual indica que las actitudes que llevan a
+sobrerreporportar voto son muy robustas.
 
-
-como fundación de una
-_batería_ de preguntas sobre comportamiento que pueden ser usadas para
-adelantar si el votante tiene intención real te votar [CUALES SON].
-Sin embargo, la discusión no está cerrada y evaluaciones empíricas de
-las baterias basadas en @perry1979  arrojan una
-diversidad de resultados. Experiencias como la de ANES muestran que
-variaiones sobre las preguntas tienen en realidad poco efecto -- las
-actitudes que llevan a sobrerreporportar voto son muy robustas.
-
-Una cuestión sobre la que puede hacerse trabajo, sin embargo es con el
-uso de las preguntas. Como indica [@sturgis2016], el problema es en el
-uso de la información. Por ejemplo, si preguntamos sobre la
-"probabilidad" de ir a votar en una escala en 10 puntos, qué valor
-usar como barrera para decidir si el votante irá a las urnas o no? 
-
-Se abren aquí dos posibilidades. Una es el uso de mecanismos
-deterministas que a cada votante asigne una decisión basada en
-información pasada o conocimiento del investigador. Tal y como dice
+En cualquier caso, como indica @sturgis2016, la pregunta central está
+sobre cómo usar los resultados de estas preguntas. Por ejemplo, si
+preguntamos sobre la "probabilidad" de ir a votar en una escala en 10
+puntos, qué valor usar como barrera para decidir si el votante irá a
+las urnas o no? Se abren aquí dos posibilidades. Una es el uso de
+mecanismos deterministas que a cada votante asigne una decisión basada
+en información pasada o conocimiento del investigador. Volviendo a
 @sturgis2016, el problema es que suele basarse en reglas con poca base
-empírica. Otra es en el uso de aproximiaciones probabilísticas que
-modelen el comportamiento reportado en una o varias preguntas. Esta
-aproximación tiene un linaje extenso. Ya al principio d ela
-invesgaición, los investigadores han tratado de agregar preguntas
-[@traugott1984] o estimar una probabilildada de votar a nnivel
-individual [@petrocik1991]. La información que está disponible, como
-aludíamos antes, va más allá de la batería de voto y puede depender de
-informadción sociodemográfica. Para una aproximación moderna véase
-@malchow2008, @murray2009, or @rusch2013.
+empírica. La otra posibilidad es usar aproximiaciones probabilísticas
+que modelen el comportamiento reportado en una o varias preguntas.
+Esta aproximación tiene una amplia trayectoria en la literatura que,
+ya desde el principio ha buscado métodos para agregar preguntas en la
+batería de participación [@traugott1984] o bien ha intentado estimar
+una probabilidad de votar a nivel individual [@petrocik1991]. La
+información que está disponible, como aludíamos antes, va más allá de
+la batería de voto y puede depender de informadción sociodemográfica.
+Para una aproximación moderna véase @malchow2008, @murray2009, o
+@rusch2013.
 
-En este caso adoptamos un modelo predictivo dadas las liminaciones de
-trabajar con una única encuesta. En primer lugar, es una aproximación
-que puede capturar mejor la decisión de los votantes en relación a la
-información disponible en los datos. Usando un modelo al nivel del
-inviduo, el analista puede entender major los factores que llevan a la
-decisión de participar. Como consequiencia, el modelo pone en manos
-del analista una herramienta para diagnosticar y reevaluar
-expectativas comunes en análisis electoral. Segundo, una aproximación
-que produce probabilidades para cada individuo ofrece la posibilidad
-de cuantificar la sensibilidad de las estimaciones a diferentes
-supuestos de particiación total.
+En el caso del Baròmetre, hemos usado un modelo predictivo que
+calcula, para cada individuo, la probabilidad de votar usando
+información contenida en el resto de las respuestas. El adjetivo
+"predictivo" exige una clarificación. Como indicamos al principio, no
+sabemos el comportamiento final del entrevistado así que no tenemos
+base para "predecir" qué hará. Con el término, que es convencional en
+la literatura, nos referimos a que preferimos modelos basándonos en su
+capacidad de representar los datos, independientemente de la base
+teórica de comportamiento que refleje. Esto es, en lugar de empezar
+con un modelo teórico de comportamiento electoral, escogeremos el
+modelo que mejor replique la decisión de votar entre aquellos que sí
+la reportan. Esta aproximación tiene la ventada de darnos una
+herramienta para diagnosticar y reevaluar expectativas comunes en
+análisis electoral. 
 
-En el caso de nuestro modelo...
+El tipo de modelo que usamos en este paso y en los otros pasos está
+descrito en @sec:appendix. Para este modelo, usamos una gran variedad
+de preguntas atitudinales y sociodemográficas entre las que el modelo
+puede escoger para modelar la probabilidad de que el entrevistado diga
+que "no votará" a la pregunta sobre intención de voto. Más información
+sobre las variables usadas en el modelo puede encontrarse en el
+repositorio.
 
 ![Confusion matrix for the vote choice model](./img/roc-abstention.pdf){#fig:roc width=70%}
 
-## El modelo de comportamiento electoral {#sec:vote-choice}
+La figura @fig:roc muestra la bondad de ajuste del modelo. Como puede
+verse, el modelo tiene una 
 
-La decisión más improtante en el proceso es la de asignar a cada
+# El modelo de comportamiento electoral {#sec:vote-choice}
+
+La decisión más importante en el proceso es la de asignar a cada
 entrevistado la opción de voto más probable para aquellos que dicen no
 saber qué harán.[^1] No es sorprendente que las encuestas
 pre-electorales sean más predictivas a medida que nos acercamos al día
@@ -129,51 +132,32 @@ clave para nosotroes es, podemos hacer inferencias razonables sobre
 comportamiento esperado de aquellos que han preferido no expresar
 todavía una preferencia electoral en la encuesta?
 
-Una revisión rápida de la literatura muestra que el comportamiento
-electoral está afectado por una enorme variedad de factores
-atitudinales como la ideología [@jessee2012; @albertos2002;
-@rivero2015] o la identidad partidista [@bartels2000] que tienden a
-ser estables [@green1994]; o la percepción de las condiciones
-económicas [@fraile2005; @fraile2010], o conocimiento o valoración de
-los líderes [@wlezien1997; @maravall1999]. Factores sociodemográficos
-como la edad, la clase social, la renta familiar, son tambien
-correlatos conocidos de la elección partidista en tanto que aproximan
-atributos que importan a grupos en términos de representación
-[@polavieja2001; @cainzos2001]. Incluso para votantes con poco interés
-por la política podemos hacer inferencias razonables de los sesgos que
-dominarán el día de las elecciones [@delacalle2010]. La literura es
-inmensa y unas pocas citas no hacen justicia pero la idea fundamental
-es que los analistas pueden usar una serie de regularidades bien
-documentadas para hacer supuestos razonables sobre los votantes que no
-se han decidido.
+No es necesaria mucha familiaridad con la literatura para observar que
+el comportamiento electoral está afectado por una enorme variedad de
+factores. Estos incluyen cosas como la ideología [@jessee2012;
+@albertos2002; @rivero2015] o la identidad partidista [@bartels2000]
+que tienden a ser estables [@green1994]; o la percepción de las
+condiciones económicas [@fraile2005; @fraile2010] y el conocimiento o
+valoración de los líderes [@wlezien1997; @maravall1999] que son más
+variables. A éstas habría que añadir factores sociodemográficos como
+la edad, la clase social, la renta familiar, también asociadas con la
+decisión de voto, generalmente a través de su impacto en la
+representación [@polavieja2001; @cainzos2001]. La literatura es
+inmensa y unas pocas citas no hacen justicia a su extensión y
+profundidad pero la idea fundamental es que los analistas pueden usar
+una serie de regularidades bien documentadas para hacer supuestos
+razonables sobre los votantes que no se han decidido.
 
-Esta disucsión sugiere el uso de modelos multivariddos. Por desgracia,
-la litartura académica no nos da mucha información sobre cómo hacer
-ese modelado ya que ha estado interesado en el efecto (potencialmente
-causal) de diferntes variables. El problema de asignar preferencias a
-votantes potenciales aparece en el caso de microtargetting con más
-claridad [@nielsen2012ground; @issenberg2013; @nickerson2014]. Sin
-embargo, en ese caso, el problema es que esta litartura está centrada
-en el caso de estados unidos y suele usar mucha información adicional
-que no está disponible en españa [@hersh2015hacking; @endres2017].
-
-Al mismo tiempo, podemos encontrar pistas en la literatura sobre datos
-incompletos en ciencias sociales. por ejemplo, sabemos que votantes de
-mayor edad, mujeres y individuos de menor educación tienen mayor tasas
-de no-respuesta en general [@krosnick2002]. Además, @voogt2003 indica
-que gente con baja confianza en el gobierno y las instituciones ---
-una actitud probablemente relacionada con ciertas preferencias
-politíca -- tiene también la probdadilidad de mostrar alta no-respuesta.
-
-Es importante reiterar aquí la limitación fundamnetal del projecto.
-Algunos entrevistados cambiarán de opinión antes de las elecciones y,
-en el mejor de los casos, lo que podemos ofrecer es una aproximación
-imperfecta dada por la información disponible en la encuesta. Si esto
-es un pboema depende, en última instancia del objeto de la
-investigación. Si estamos intereados en _nowcasting_, en estimar el
-estado de la opinión pública en el momento de la encuesta, los cambios
-en las preferencias a lo largo de las campañas o durante el ciclo
-político son _precisamente_ el objeto de nuestra atención. 
+Al mismo tiempo, la literatura académica no nos ofrece mucha
+información sobre cómo traducir estos resultados para su uso para la
+imputación de preferencias partidistas -- en buena medida porque su
+interés está en el efecto (potentialmente causal) de diferentes
+variables. Sin embargo, igual que antes, una aproximación predictiva
+es potencialmente útil. Este tipo de problema es similar al del caso
+de microtargetting [@nielsen2012ground; @issenberg2013;
+@nickerson2014] en el que este tipo de técnicas son comunes. Por otra,
+igual que en la sección anterior, nuestro objetivo es escoger la mejor
+decisión para cada individuo independientemente de sus razones.
 
 Un mayor problema en este caso es el caso de aquellos que identifican
 incorrectamente sus preferencias en la encuesta. Este problema suele
@@ -192,177 +176,149 @@ otro modo, el problema no es que estos votantes no indiquen su
 intención real (camuflándola bajo otra eleccion o ocultándose bajo la
 opción no sabe ) sino que no participan en la encuesta.
 
-En nuestro caso, adoptamos el mismo modelo 
+Al mismo tiempo, podemos encontrar pistas en la literatura sobre datos
+incompletos en ciencias sociales. por ejemplo, sabemos que votantes de
+mayor edad, mujeres y individuos de menor educación tienen mayor tasas
+de no-respuesta en general [@krosnick2002]. Además, @voogt2003 indica
+que gente con baja confianza en el gobierno y las instituciones ---
+una actitud probablemente relacionada con ciertas preferencias
+politíca -- tiene también la probdadilidad de mostrar alta
+no-respuesta.
+
+En nuestro caso, adoptamos el mismo modelo que antes, pero en este
+caso modelizando la probabilidad de votar a cada uno de los partidos.
+La figura [-@fig:confusion-voteintention] muestra la matriz de
+confusión 
 
 ![Confusion matrix for the vote choice model](./img/confusion_matrix-partychoice.pdf){#fig:confusion-voteintention width=70%}
 
-Figure [-@fig:confusion-voteintention] shows the confusion matrix
-resulting from applying the model to a test set containing 20% of the
-observations. The reported intended behavior is shown in the rows and
-the predictions for each case, in the columns. It is readily seen that
-the model achieves a high performance with an overall accuracy of
-about 91%. This high accuracy reflects the fact that the survey
-instrument was designed to include many items that are strongly
-associated with intended behavior, as discussed in section
-[-@sec:data]. Moreover, the confusion matrix implies Cohen's $\kappa$
-of 0.892, which is evidence that the model performs well for both big
-and small parties.
+The reported intended behavior is shown in the rows and the
+predictions for each case, in the columns. It is readily seen that the
+model achieves a high performance with an overall accuracy of about
+91%. This high accuracy reflects the fact that the survey instrument
+was designed to include many items that are strongly associated with
+intended behavior, as discussed in section [-@sec:data]. Moreover, the
+confusion matrix implies Cohen's $\kappa$ of 0.892, which is evidence
+that the model performs well for both big and small parties.
 
-El model corresponde con simpatía. 
+# Ponderación de los resultados electorales {#sec:weighting}
 
+Los errores en las encuestas en 2015 y 2016 en Estados Unidos y el
+Reino Unido empezarn una revisión más sistemática de los métodos de
+ponderación utilizados por las casas de encuestas. La ponderación de
+las encuestas de opinión no es una tarea sencilla y no existe un
+método obvio para corregir algunos de los sesgos de no-participación
+más frecuentes. Los problemas dependen de elementos técnicos de la
+encuesta pero en todos los casos el problema es siempre el mismo: que
+hay un tipo de posible votante que no está correctamente representado
+en la encuesta bien porque no es reachable o bien porque declina
+participar. En el contexto de encuestas de opinión pública, es
+frecuente hacer ajustes mediante ponderación para corregir estas tasas
+diferenciales de particiáción entre grups. Por ejemplo, entrevistados
+mas jóvenes, con menores niveles de educación o minorías
+[@battaglia2008; @chang2009] son menos proclives a participar en
+encuestas. Una revisión de estrategias está disponible en
+@elliott2017.
 
-In this article, we discuss the use of a predictive modeling approach
-to estimate likelihood of voting (for every respondent in the sample),
-vote choice (for non-reporters), and past vote (for non-reporters), as
-an alternative to deterministic, rule-based models. As I argue below,
-a probabilistic approach offers two advantages. First, it allows the
-analyst to exploit additional information available in the data, which
-can then provide a fuller, richer view of electoral behavior compared
-to rule-based imputation. Second, as a data-driven model, it gives
-analysts a way of contrasting and inspecting their intuitions in the
-light of regularities sustained by data. It is thus similar to what
-has been suggested in literature on political microtargeting
-[@hersh2015; @endres2017]. 
+La solución nunca es sencilla. En palabras de @gelman2007: "[s]urvey
+weighting is a mess." Es ilustrativo que cuatro encuestadores
+profesionales usando los mismos datos obtuviesen estimaciones
+nacionales de voto para la elección presidencial de 2016 aue estaban a
+más de 4% de diferencia de ellos. [@cohen2016].
 
+El problema se agrava porque, como decíamos antes, es probable que
+muchos entrevistados sobreestimen su probabilidad de votar. Filtros
+como los suelen ser útiles pero ajustes por voto pasado, para ajustar
+la distribución de recuerdo de voto en la encuesta con los resultados
+electorales reales, suelen ser recomendables. La práctica es razonable
+además por la estrecha relación entre voto pasado y voto futuro aunque
+no está exenta de críticas [@durand2015] y potenciales problemas
+[@escobar2014]. @blumenthal2013 discuss how different pollsters use
+these variables. Uno de ellos es que el voto pasado es difícil de
+medir: es un evento que ocurre a gran distancia temporal y que puede
+ser difícil de recordar, que además puede estar sesgado por los mismos
+motivos que la intención de voto.
 
-## Weighting political surveys {#sec:weighting}
+## Estimar voto pasado {#sec:pastvote}
 
-The polling misses of 2015 and 2016 in the U.S. and the U.K. sparked a
-review of the weighting methods used by polling houses. Weighting of
-public opinion polls is a hard task and no obvious method exist for
-correcting some of the biases listed above. As @gelman2007 succintly
-puts it "[s]urvey weighting is a mess." It is illustrative that four
-professional pollsters using the same dataset could make estimates at
-the national level in the 2016 U.S. Presidential elections that were
-4% apart [@cohen2016].
+Es un resultado común en la literatura en Estaods Unidos que los
+entrevistados tienden a sobrereportar voto pasado. Por ejemplo,
+@mcdonald2007 muestran que elecciones con tasas de participación de
+50% están asociadas a encuestas en las que entre un 70 y un 90% de
+entrevistados dicen haber votado. Desde luego esto no es un problema
+únicamente americano [@karp2005; @selb2013]. @selb2013, por ejemplo,
+indican que la tasa de participación en encuesta casi siempre excede
+la tasa de participación oficial usando datos de 128 estudios
+postelectorales en 43 países.
 
-Weighting is commonly used to address two separate concerns
-[@voss1995], which depend on the sampling procedure. First,
-participation in the survey may be correlated with variables of
-interest. For instance, adults with poor health may be less likely to
-participate in studies about medical expenditures due to the burden
-imposed by the survey instrument. In that case, weighting by the
-overall health of the individual, _if we had access to this variable,_
-corrects the survey estimates. In the context of public opinion
-polling, many pollsters adjust their raw results to population
-benchmarks because of differential rates of participation for various
-subgroups. For instance, young respondents, with low levels of
-education, and minorities [@battaglia2008; @chang2009] are less likely
-to cooperate in surveys. Fortunately, @dimock2013 and @aapor2016 show
-evidence that partisan leaning does not seem to affect the decision to
-participate in polls.
+Este sesgo debería ser evidencia suficiente de que el problema no es
+simplemente uno de memoria [@ansolabehere2017]. @ansolabehere2017, de
+hecho, ofrece una explicación que presenta problemas serios para las
+encuestas electorales. En su estudio, quizás los entrevistados sean
+sinceros sobre su voto pasado pero en problema está en la
+participación en la encuesta: aquellos que es más probable que voten
+es también más proble que acepten ser entrevistados, quizás por virtud
+cívica. Tal y como lo pone @sciarini2016, "responding to a survey
+about politics and misreporting on turnout are likely to be driven by
+similar factors". De hecho @burden2000 muestra que mayor reticencia a
+particpar en el National Election Study está de hecho asociada con
+menor probabilidad de votar. En este caso, la diferencia entre
+partipación real y estimada en eneustas refleja diferentes tasas de
+partipación en la encuesta entre votantes y abstencionistas.
 
-The problem seems easy _prima facie_ but it is complicated by the fact
-that many opinion polls are either nonprobability quota samples or
-have low response rates[^4]. In both cases, correction of nonresponse
-without hard evidence on who is more likely to not cooperate with the
-survey makes the problem one about knowing which variables should be
-used for correction. It is worth noting that quota sampling ignoring
-cooperation rates does to solve the bias issue [@sturgis2016]. A
-recent review of strategies is available @elliott2017.
+Además, es posible que haya que añadir la posibilidad de que los
+entrevistados, bien por falta de memoria o bien por deseabilidad,
+reporten que han votado por el partido ganador [@nadeau1993;
+@schmitt2015]. 
 
-The second issue that weighting addresses is that respondents tend to
-overreport their likelihood to vote. Screeners for likely voters are
-common, especially in the last few weeks before election day, but
-typically further corrections by the inverse of turnout probability
-are necessary [@sturgis2016]. Adjustments by estimates by the past
-vote share seems to be country specific practice. The practice seems
-well grounded, as it addreses potentially both concerns. On the one
-hand, we are weighing down overreporters to well known population
-values. On the other, past behavior may be useful to correct future
-behavior. However, the practive of weighting by past vote has been
-criticized on a number of practical grounds [@durand2015].
-@escobar2014, for the Spanish case, finds that it only improves
-prediction in elections in which the incumbent wins.
+Con esto en cuenta, en la encuesta estimamos voto pasado y ponderamos
+para ajustar a la distribución observada. 
 
-However, the practice underpins on a number of troublesome
-assumptions. First, that voters report their past voting behavior
-truthfully. True, the assumption of truthfulness pervades the whole
-enterprise of survey data analysis, but we know that distant behavior
-is hard to recall and voters show a tendency to report voting for the
-incumbent party. Second, and more problematic, the practice implicitly
-assumes that some type of voters are overrepresented in the sample
-which speaks about nonresponse bias. Third, weighting by past vote
-forces us to reweight the demographic composition of the sample to
-match the sampling quotas.
+# Asignación de escaños {#sec:seats}
 
-### Recovering past vote {#sec:pastvote}
+Los pasos anteriores nos permiten una aproximación a la intención de
+voto latente en la encuesta. El paso natural siguiente consiste en
+traducir estas proporciones de voto a escaños en el Parlament. La
+tarea es sencilla si tenemos las proporciones de voto para cada una de
+las circunscripciones en las que se eligen diputados: en ese caso solo
+tendremos que aplicar las reglas del reparto de escaños a los
+resultados estimados en cada circunscripción teniendo en cuenta la
+incertidumbre asociada a nuestras estimaciones.[^7] Para cada partido
+en cada circunscripción, extrae un resultado aleatorio de los que son
+factibles dada la estimación en la encuesta, elimina las listas que no
+llegan al umbral mínimo y reparte el resto usando una versión
+simplificada del método D'Hondt. Repitiendo el proceso una gran
+cantidad de veces, obtenemos la distribución de escaños en el
+Parlament que es consistente con los resultados en la encuesta.
 
-In this category of misreporting we also have the evidence of
-"bandwagoning" [@nadeau1993; @schmitt2015] with respondents
-disproportionately recalling having voted for the winning party.
-
-Past turnout and past vote choice are relevant because they can be
-used to both estimate future behavior and also to benchmark surveys
-based on observed results from previous elections (see Section
--@sec:weighting). @blumenthal2013 discuss how different pollsters use
-these variables.
-
-Reports of past turnout are affected by the same factors that I
-described for the case of _expected_ turnout, with some
-particularities. It is a commonly reported result in the U.S.
-literature that respondents overreport their past turnout. For
-instance, @mcdonald2007 show that elections with turnouts of 50% can
-have surveys with a 70 to 90% of respondents reporting having voted.
-By no means this is an American phenomenon [@karp2005; @selb2013].
-@selb2013 report that sample turnout in surveys virtually always
-exceed official turnout using data from 128 postelection studies in 43
-countries.
-
-The consistently upward bias should be sufficient proof that
-overreporting cannot simply be attributed to poor respondent recall
-[@ansolabehere2017]. @ansolabehere2017 elaborate on potential
-arguments that explain turnout overreporting. A common, and worrisome
-explanation, is that the overestimation of turnout in public opinion
-surveys is due to sample selection bias and not only to missreporting.
-As @sciarini2016 note, "responding to a survey about politics and
-misreporting on turnout are likely to be driven by similar factors"
-and, in fact, @burden2000 shows that higher reluctance to
-participating in the National Election Study is indeed associated with
-a smaller propensity to vote. In that case, the difference between
-reported turnout between public opinion surveys and the observed
-turnout from past electoral results reflects differential
-participation rates between voters and non-voters.
-
-El model obviamente funciona peor ya que depende de mucha menos
-información. Sin embargo, es mucho más preciso que . 
-
-La ponderación a voto pasado es mediate poststratafificación alos
-resultados reales después de agrupar los partidos. 
-
-# Escaños {#sec:seats}
-
-El Sistema 
+Sin embargo, el problema es más complicado porque la encuesta no está
+diseñada para estimar la distribución de voto en cada distrito y las
+muestras en circunscripciones pequeñas por lo general son demasiado
+pequeñas para poder hacer inferencias fiables sin información
+adicional. El modelo es un modelo bayesiano de regresión que calcula
+la distribución de voto en cada provincia como una combinación entre
+los resultados observados en la encuesta e información adicional
+aportada por el investigador.[^8] Una fuente razonable de información
+adicional es, por ejemplo, la distribución de voto en elecciones
+anteriores o, mejor aún, la distribución de voto _relativa_ en cada
+circunscripción con respecto al total en Cataluña. El analista,
+dispone de un parámetro para escoger en qué medida los resultados
+deben guiarse más o menos por esta información previa. 
 
 # Conclusions {#sec:conclusions}
 
-The current approach also comes with a number of limitations. Some of
-them are the result of the questionnaire not being designed for the
-type of applications that I suggested here. For instance, the
-performance likely voter model could be improved with access to a
-richer battery of screener questions. Instead, the models had to rely
-to one response category in the vote intention question. Similarly,
-changes to the design of the questionnaire in different field
-iterations make it difficult to identify an ideal common set of
-variables that can be used throughout a long span of time.
+En las páginas anteriores hemos hecho una revisión a vista de pájaro
+de las decisiones que han llevado al método de ponderación
+implementado en el código.
 
-More generally, it can be argued that the ideal situation would be one
-in which the questionnaire structure could be adapted to make better
-use of predictive models. For instance, an inspection of the
-systematic errors that the models may be making could inform the
-redesign of the survey instrument. The difficulties that the models
-above face when trying to classify voters from the smaller parties is
-an illustration of the kind of items that could be added to the
-instrument.
-
-The most important limitation is that the approach suggested here
-relies on an analogy assumption between voters and non-voters. In
-practice, it means that non-reporters in the sample are similar to
-those who do report their voting preference and that therefore
-information about how reporters behavior can be used to make
-predictions about non-reporters. The assumption is by no means
-exclusive of a predictive approach but it does become more obvious
-within this framework.
+Esta aproximación tiene alugunas liminaciones. La más importante es
+que el método implica una analogía entre votantes y no-votantes. En la
+práctica, la aproximación usada implique que los non-reporters en la
+muestra son simliares a aquellos que sí indican sus preferencias de
+voto y que, por tanto, la información sobre el comportamiento de los
+que reportan puede usarse para hacer predicciones acerca de los que
+no. Por supuesto, este supuesto no es exclusivo de una aproximación
+predictiva pero sí que aparece como más obvia con esta aproximación. 
 
 \newpage
 
@@ -451,3 +407,6 @@ are mainly interested in, like vote share.
     desirability pressure from the past turnout questions, although
     with limited success [@abelson1992; @holbrook2010; @hanmer2017].
 
+[^7]: Esto es lo que hace el paquete `escons`:
+
+[^8]: Este método está implementado en el paquete `dshare`.

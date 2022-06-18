@@ -11,6 +11,12 @@ colorlinks: true
 urlcolor: blue
 link-citations: true
 date: 
+tblPrefix:
+  - "tabla"
+  - "tablas"
+secPrefix:
+  - "sección"
+  - "secciones"
 abstract: |
   Something
 ---

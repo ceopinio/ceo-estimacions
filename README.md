@@ -62,11 +62,13 @@ environment for ease of use.
    expected to not vote.
 
 5. `district-shares.R` estimates district-level vote shares using the
-   Catalonia-level shares.
+   Catalonia-level shares. This script uses the [package
+   `dshare`](https://github.com/griverorz/dshare) which needs to be
+   installed separately.
   
 6. `seat-estimates.R` uses the district-level vote shares to simulate
   the distribution of seats for each party. This script uses the
-  [package `ceobarometre`](https://github.com/griverorz/ceo-barometre)
+  [package `escons`](https://github.com/ceopinio/escons)
   which needs to be installed separately.
   
 The script `auxiliary.R` defines some helper functions that are used

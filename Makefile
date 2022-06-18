@@ -44,6 +44,7 @@ bump:
     --bibliography=$(BIB) \
 	$(OPTIONS) \
 	--output $@ \
+	-V lang=es-ES \
 	-M date="`date "+%B %e, %Y"`"
 
 ## Phonies

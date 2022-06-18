@@ -1,52 +1,68 @@
 # Introducción  {#sec:introduction}
 
-@rogers2011 documentan quen en el caso de Estados Unidos, entre un 13%
-y 54% de la gente que dice que va a votar no lo hace. Más sorprendente
-es el hecho de que entre un 29% y un 55% de los que dicen que _no_ van
-a votar sí lo hagan finalmente. Es cuestionable que estas magnitudes
-se trasladen al contexto catalán pero ilustran bien los restos en el
-uso de encuestas para el análisis electoral. Ni siquiera los
-entrevistados pueden predecir con certeza lo que ellos mismos harán el
-día de las elecciones: quizás aparezcan contigencias de última hora
-que les impidan ir a las urnas, quizás cambien de opinión sobre qué
-harán ese día o quizás prefieran no hacer partícipe al entrevistador
-de sus planes para ese día.
+Ni siquiera quienes participan como entrevistados en las encuestas
+electorales saben con certeza lo que ellos mismos harán el día de las
+elecciones. Entre un 13% y 54% de la gente que dice que va a votar no
+lo hace y sí que lo hacen entre un 29% y un 55% de los que aseguran
+que no lo harían [@rogers2011]. Los datos provienen de Estados Unidos
+y es cuestionable que se trasladen al caso catalán pero ilustran bien
+un reto de usar las encuestas electorales como instrumentos de
+predicción: muchas cosas pueden cambiar entre el día de la entrevista
+y el día de las elecciones. Quizás aparezcan contigencias de última
+hora que impidan al entrevistado ir a las urnas, quizás cambie de
+opinión sobre qué hará ese día o incluso quizás prefiera no hacer
+partícipe al entrevistador de lo que tiene previsto hacer.
 
-A la hora de hacer interpretaciones, uno debe por tanto tener en
-cuenta que las preguntas sobre comportamiento capturan una
-_disposición_ y no una predicción. No hay mucho que, como
-investigadores, podamos hacer sobre esto: no estamos en mejor posición
-que los entrevistados para deducir si votarán o por quién y solo
-tenemos a nuestra disposición lo que, en este momento, nos dicen que
-harán.
+Sin embargo, esta perspectiva de las encuestas electorales, aunque
+común, es errónea. Uno debe interpretar las preguntas sobre el
+comportamiento esperado teniendo en cuenta que el objetivo de las
+mismas es capturar una disposición y no hacer una predicción. Como
+investigadores, no estamos mejor situados que los entrevistados para
+deducir si votarán o por quién lo harán y solo tenemos a nuestro
+alcance lo que nos dicen que harían llegado el momento. Sin embargo
+ese no es nuestro objetivo. Aunque las preguntas de intención de voto
+se formulen como un _hipotético_ comportamiento futuro, es capturar un
+aspecto concreto de la opinión pública (el apoyo a cada una de las
+opciones electorales) en el contexto y en el momento en el que la
+entrevista tiene lugar.
 
-Sin embargo, sí podemos usar información en la encuesta para hacer
-inferencias razonables sobre la disposición de cada entrevistado y la
-muestra en su conjunto. Regularidades en las actitudes de los
+La tarea de estimación electoral, vista desde esta interpretación en
+la que la intención de voto es una aproximación a una actitud, es más
+factible y menos desesperanzadora. La dificultad radica, no en la
+imposibilidad práctica de predecir el futuro, sino en el hecho de que
+la política es una dimensión secundaria para la mayoría de la
+ciudadanía: ni muchos entrevistados tienen preferencias políticas
+claramente definidas en el momento de la entrevista ni su memoria
+sobre qué hicieron en las últimas elecciones es precisa. De ahí que,
+entre otras cosas, las preguntas que nos interesan tengan
+habitualmente altas tasas de valores perdidos (esto es, respuestas del
+tipo "no sabe/no contesta").
+
+En cualquier caso, esta tarea, la de asignar una disposición a cada
+entrevistado y a la muestra en su conjunto, es un frente en el que
+podemos hacer avances. Regularidades en las actitudes de los
 entrevistados (es de esperar que gente que responde de forma similar a
 las mismas preguntas tenga actitudes o comportamientos similares) y
 supuestos poco controvertidos acerca de la consistencia interna de los
 perfiles de respuestas de cada individuo (por ejemplo, que la gente
 que se declara de izquierdas es más probable que vote a partidos de
 izquierdas) nos ofrecen una base sólida para imputar comportamientos
-plausibles a cada entrevistado incluso aunque no podamos saber qué es
-lo que harán al final.
+plausibles a cada entrevistado.
 
 Este es, precisamente, el objetivo de esta nota. En ella discutimos el
-método usado en los Baròmetres d'Opinió Política del Centre d'Estudis
-d'Opinió. En concreto, centraremos nuestra atención en los modelos
-predictivos usados para estimar las variables conductuales más
-relevantes en encuestas electorales. En primer lugar, la probabilidad
-de que un entrevistado vaya a votar (@sec:vote-propensity) y el
-partido por el que lo harán (@sec:vote-choice). Como paso intermedio
-para la ponderación de la encuesta (@sec:weighting), también estimamos
-el partido por el que lo hicieron en las últimas elecciones
-(@sec:pastvote). Esta información nos permite estimar la distribución
-de voto implícito en la encuesta. Finalmente, calcularemos una
-distribución de escaños correspondiente con el fin de extrapolar las
-consecuencias institucionales (@sec:seats). En este paso, la
-dificultad técnica estará en asignar porcentajes de voto a cada
-partido en cada distrito electoral.
+método de estimación electoral usado en los Baròmetres d'Opinió
+Política del Centre d'Estudis d'Opinió centrándonos en la motivación
+de la solución que adoptamos en cada uno de los pasos. En concreto,
+discutimos los modelos de asignación de intención de voto
+(@sec:vote-choice) e intención de participación para cada entrevistado
+(@sec:vote-propensity) así como de estimación de comportamiento
+anterior (@sec:pastvote) como fase previa a la re-ponderación de la
+encuesta (@sec:weighting). Con esta información, podemos estimar la
+distribución de la intención de voto implícita en la encuesta y el
+método de asignación de escaños a cada alternativa política
+(@sec:seats). Finalmente, en las conclusiones (@sec:conclusions)
+presentamos algunas limitaciones conocidas de esta aproximación y
+potenciales mejoras futuras. 
 
 # Estimar la decisión de votar o no {#sec:vote-propensity}
 
@@ -330,7 +346,7 @@ predictiva pero sí que aparece como más obvia con esta aproximación.
 
 \appendix
 
-# Appendix: XGBoost
+# El modelo de predicción
 
 The predictive models I use here are based on the idea of _boosting._
 An accessible introduction to boosting can be found in @friedman2001.
@@ -407,6 +423,6 @@ are mainly interested in, like vote share.
     desirability pressure from the past turnout questions, although
     with limited success [@abelson1992; @holbrook2010; @hanmer2017].
 
-[^7]: Esto es lo que hace el paquete `escons`:
+[^7]: Véase el paquete `escons`.
 
-[^8]: Este método está implementado en el paquete `dshare`.
+[^8]: Véase el paquete `dshare`.

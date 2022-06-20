@@ -9,6 +9,7 @@ author:
 version: '1.0'
 colorlinks: true
 urlcolor: blue
+lang: es-ES
 link-citations: true
 date: 
 tblPrefix:

@@ -4,7 +4,7 @@
 ## simulation uses the MOE of the estimate district vote share and
 ## returns the 5 and 95 percentile of the seats. 
 
-library(ceobarometre)
+library(escons)
 library(yaml)
 library(dplyr)
 

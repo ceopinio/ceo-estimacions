@@ -33,12 +33,12 @@ registerDoParallel(cl)
 ## Party choice model
 
 grid_partychoice <- expand.grid(eta=c(.01, .005, .001),
-                               max_depth=c(1, 2, 3, 4, 5),
-                               min_child_weight=1,
-                               subsample=0.8,
-                               colsample_bytree=0.8,
-                               nrounds=seq(1, 20, length.out=50)*100,
-                               gamma=0)
+                                max_depth=c(1, 2, 3, 4, 5),
+                                min_child_weight=1,
+                                subsample=0.8,
+                                colsample_bytree=0.8,
+                                nrounds=seq(1, 20, length.out=50)*100,
+                                gamma=0)
 
 control_partychoice <- trainControl(method="repeatedcv",
                                     number=FOLDS,
@@ -47,16 +47,16 @@ control_partychoice <- trainControl(method="repeatedcv",
                                     summaryFunction=multiClassSummary)
 
 fit_partychoice <- train(as.factor(intention) ~ .,
-                        data=droplevels(subset(bop,
-                                               subset=!is.na(bop$intention),
-                                               select= -c(id, abstention))),
-                        method="xgbTree", 
-                        trControl=control_partychoice,
-                        tuneGrid=grid_partychoice,
-                        na.action=na.pass,
-                        allowParallel=TRUE,                         
-                        verbose=FALSE,
-                        verbosity=0)
+                         data=droplevels(subset(bop,
+                                                subset=!is.na(bop$intention),
+                                                select= -c(id, abstention))),
+                         method="xgbTree", 
+                         trControl=control_partychoice,
+                         tuneGrid=grid_partychoice,
+                         na.action=na.pass,
+                         allowParallel=TRUE,                         
+                         verbose=FALSE,
+                         verbosity=0)
 
 ## Save model
 m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
@@ -104,24 +104,24 @@ grid_abstention <- expand.grid(eta=c(.01, .005, .001),
                                gamma=0)
 
 control_abstention <- trainControl(method="repeatedcv",
-                                  number=FOLDS,
-                                  repeats=REPEATS,
-                                  classProbs=TRUE,
-                                  summaryFunction=multiClassSummary,
-                                  savePredictions=TRUE)
+                                   number=FOLDS,
+                                   repeats=REPEATS,
+                                   classProbs=TRUE,
+                                   summaryFunction=multiClassSummary,
+                                   savePredictions=TRUE)
 
 fit_abstention <- train(as.factor(abstention) ~ .,
-                       data=droplevels(subset(bop,
-                                              subset=!is.na(bop$abstention),
-                                              select= -c(id, intention))), 
-                       method="xgbTree", 
-                       trControl=control_abstention,
-                       tuneGrid=grid_abstention,
-                       na.action=na.pass,
-                       probMethod="Bayes",
-                       allowParallel=TRUE,
-                       verbose=FALSE,
-                       verbosity=0)
+                        data=droplevels(subset(bop,
+                                               subset=!is.na(bop$abstention),
+                                               select= -c(id, intention))), 
+                        method="xgbTree", 
+                        trControl=control_abstention,
+                        tuneGrid=grid_abstention,
+                        na.action=na.pass,
+                        probMethod="Bayes",
+                        allowParallel=TRUE,
+                        verbose=FALSE,
+                        verbosity=0)
 
 ## Save model
 m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)

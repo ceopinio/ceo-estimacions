@@ -68,12 +68,12 @@ bop$recall <- droplevels(bop$recall)
 ## Predictive model
 
 grid_recall <- expand.grid(eta=c(.01, .005, .001),
-                               max_depth=c(1, 2, 3, 4, 5),
-                               min_child_weight=1,
-                               subsample=0.8,
-                               colsample_bytree=0.8,
-                               nrounds=seq(1, 20, length.out=50)*100,
-                               gamma=0)
+                           max_depth=c(1, 2, 3, 4, 5),
+                           min_child_weight=1,
+                           subsample=0.8,
+                           colsample_bytree=0.8,
+                           nrounds=seq(1, 20, length.out=50)*100,
+                           gamma=0)
 
 control_recall <- trainControl(method="repeatedcv",
                                number=FOLDS,

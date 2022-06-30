@@ -1,6 +1,6 @@
 # Introducción  {#sec:introduction}
 
-Ni siquiera quienes participan como entrevistados en las encuestas
+Ni siquiera quienes participan como entrevistados en las encuesta
 electorales saben con certeza lo que ellos mismos harán el día de las
 elecciones. Entre un 13% y 54% de la gente que dice que va a votar no
 lo hace y sí que lo hacen entre un 29% y un 55% de los que aseguran
@@ -66,7 +66,7 @@ potenciales mejoras futuras. Los detalles técnicos pueden consultarse
 en el código de replicación disponible en el repositorio en GitHub del
 Centre d'Estudis d'Opinió.
 
-# Asignación de preferencia partidista {#sec:vote-choice}
+# Asignación de una preferencia partidista {#sec:vote-choice}
 
 Aunque quizás no sea el componente que tenga más impacto en la
 estimación final, la asignación a cada entrevistado de una intención
@@ -189,93 +189,118 @@ para todos los entrevistados. En todos los análisis, solo usamos la
 predicción de voto si el entrevistado no declara una intención
 directa.
 
-# Asignar una probabilidad de participación {#sec:vote-propensity}
+# Asignación de una probabilidad de participación {#sec:vote-propensity}
 
-Está bien documentado en la investigación especializada que los
-entrevistados tienden a sobrereportar sus niveles de participación
-política. La explicación tradicional es que los entrevistados no
-quieren admitir delante de los entrevistadores que se desentienden de
-una actividad socialmente sancionada como votar [@holbrook2010],
-especialmente si pertenecen a un grupo del que otros esperan cierta
-virtud cívica [@bernstein2001;@hanmer2017], tal y como votantes de
-mayor edad o con mayor interés por la política. 
+Es un fenómeno bien documentado que los entrevistados en encuestas
+políticas tienden a exagerar su nivel de participación política. La
+explicación tradicional es que los entrevistados no quieren admitir
+delante de los entrevistadores que se desentienden de una actividad
+bien vista socialmente como votar [@holbrook2010], especialmente si
+son parte de un grupo de que se espera cierta virtud cívica
+[@bernstein2001;@hanmer2017], como es el caso de votantes de mayor
+edad o aquéllos que se dicen más interesados por la política.
 
-De ahí que, por lo general, las encuestas electorales eviten incluir
-una única pregunta directa sobre si los entrevistados tienen intención
-de abstenerse. En su lugar, siguiendo a @perry1979, es frecuente usar
-una batería de preguntas que intenten capturar esa decisión directa e
-indirectamente [@dimock2001]. 
+De ahí que sea práctica común incluir en el instrumento preguntas
+directas sobre intención de voto con una opción que capture abstención
+pero también otras preguntas indirectas que den pistas a los
+investigadores sobre la probabilidad con la que el entrevistado irá a
+votar [@perry1979; @dimock2001].
 
-En cualquier caso, como indica @sturgis2016, la cuestión clave no es
-tanto la formulación de estas preguntas sino cómo usarlas en el
-análisis. Por ejemplo, si preguntamos sobre la probabilidad con la que
-un entrevistado cree que irá a votar en una escala en 10 puntos, ¿qué
-valor debemos usar para asignarle una decisión? ¿Y cómo combinar esta
-información con la de otras preguntas en la batería? Se abren aquí dos
-posibilidades. Una es el uso de reglas deterministas potencialmente
-complejas que asigne, a cada votante, una decisión sobre si será
-contado como abstencionista o no. El mayor inconveniente de esta
-estrategia es que, por lo general, las reglas tienen poca base
-empírica [@sturgis2016]. La otra posibilidad es usar un modelo
-estadístico aproveche las relaciones observadas en la encuesta entre
-información sociodemográfica, actitudes e intenciones. Esta estrategia
-tiene una larga trayectoria [@traugott1984; @petrocik1991] y es común
-en la práctica habitual [@malchow2008; @murray2009; @rusch2013].
+Estas preguntas nos dan información adicional, quizás más completa y
+correcta de la intención real de los entrevistados, pero tiene un
+coste añadido. Por ejemplo, si preguntamos sobre la probabilidad con
+la que un entrevistado cree que irá a votar en una escala en 10
+puntos, ¿qué valor debemos usar para asignarle una decisión? ¿Y cómo
+combinar esta información con la de otras preguntas en la batería? Se
+presentan aquí dos posibles métodos de análisis. Una es el uso de
+reglas que asigne, a cada votante, una decisión sobre si será contado
+como abstencionista o no. El mayor inconveniente de esta estrategia es
+que, por lo general, las reglas tienen poco apoyo empírico
+[@sturgis2016]. 
 
-Al igual que hicimos en el caso de la intención de voto, usamos un
-modelo predictivo para asignar, a cada votante, una probabilidad de no
-ser abstencionista. La razón de usar un modelo separado en lugar de
-modelizar la decisión de voto y abstención es porque, por una parte es
-posible que sea una decisión separada afectada de forma diferente por
-las vriables observadas. Por otra, para usar una probabilidad de votar
-vs no votar.
+La otra posibilidad es recurrir a un modelo estadístico que explote la
+asociación entre las diferentes preguntas sobre la intención de ir a
+votar, otras actitudes capturadas en la encuesta y, tal vez,
+información sociodemográfica sobre los entrevistados. Esta estrategia
+tiene una larga trayectoria en la literatura [@traugott1984;
+@petrocik1991] y es práctica común [@malchow2008; @murray2009;
+@rusch2013] no solo en análisis de encuestas electorales, sino también
+en estudios de microtargeting [@endres2016; @endres2017;
+@hersh2015hacking].
 
-La @fig:roc muestra la bondad de ajuste del modelo. Como puede verse,
-el modelo tiene una
+La estrategia que usamos para asignar, a cada potencial votante, una
+decisión sobre si se abstendrá o no es equivalente a la que usamos
+para estimar a qué partido votarán. En concreto usamos un modelo
+predictivo con la misma estructura: de los casos en los cuales sabemos
+si los entrevistados votarán o no, aprendemos una relación entre
+variables que transportaremos a los casos que han preferido no
+declarar su intención. 
+
+Hay dos razones para separar las decisiones de voto y abstención a
+pesar de que su parecido. Por una parte, usar modelos separados nos
+dan más flexibilidad para, por ejemplo permitir que las dos decisiones
+estén influenciadas por factores diferentes. Por otra, porque, si en
+el caso de la intención de voto estábamos interesados en asignar un
+partido a cada votante, en el caso de la intención de abstenerse,
+estamos interesados en asignar una probabilidad. Esta probabilidad nos
+dará un instrumento flexible para simular diferentes escenarios de
+participación: podemos evaluar el efecto de diferentes umbrales en la
+probabilidad de voto para comprobar la composición de los votantes que
+irán a las urnas y su impacto sobre los resultados electorales
+estimados.
+
+La @fig:roc muestra la bondad de ajuste del modelo. En concreto, la
+relación entre la proporción de verdaderos positivos y falsos
+negativos para diferentes posibles umbrales de probabilidad que pueden
+usarse para transformar probabilidades en decisiones. Como puede
+verse, el modelo tiene una alta capacidad predictiva y tiene asociada
+una exactitud de XXX.
 
 ![Curva ROC para el modelo de participación electoral](./img/roc-abstention.pdf){#fig:roc width=70%}
 
-Del modelo predecimos para cada individuo una probabilidad. Usando
-esta probabilidad, inferimos además un threshold que mnimize los
-falsos positivos y falsos negativos. Este valor sirve de base para la
-estimación de la tasa de participación electoral, aunque es importante
-añadir informació adicional como la histórica.
+Al igual que antes, del modelo obtenemos una intención de
+comportamiento únicamente para los entrevistados que no la declaran.
+Esto es, el modelo no reemplaza las decisiones reportadas por los
+entrevistados. [PERO ESTO NO ARREGLA EL PROBLEMA DE SOBRERREPORTING]
 
 # Ponderación por recuerdo de voto {#sec:weighting}
 
-La ponderación de las encuestas de opinión no es una tarea sencilla y
-no existe un método obvio para corregir algunos de los sesgos de
-no-participación más frecuentes. Los problemas dependen de elementos
-técnicos de la encuesta pero en todos los casos el problema es siempre
-el mismo: hay votantes que, por lo general, no están correctamente
-representados en la encuestas bien porque declina participar o porque
-no es accesible. La re-ponderación de las encuestas de opinión pública
-para ajustar tasas diferenciales de participación es común, por
-ejemplo, para corregir que habitualmente individuos más jóvenes,
-pertenecientes a minorías o con menores niveles de educación
-[@battaglia2008; @chang2009] son menos proclives a participar. Una
-revisión de estrategias está disponible en @elliott2017. Sin embargo,
-incluso esta solución nunca es sencilla de implementar. En palabras de
-@gelman2007: "[s]urvey weighting is a mess."
+La re-ponderación de encuestas nunca es sencilla o, en palabras, de
+@gelman2007: "[s]urvey weighting is a mess". En general, la
+re-ponderación es necesaria para ajustar discrepancias entre la
+muestra planeada y la muestra ejecutada: no todos los individuos
+seleccionados para ser entrevistados aceptan serlo y suele ser
+necesario hacer correcciones a los pesos asignados a cada individuo
+para que las estimaciones sigan siendo válidas. Por ejemplo, si las
+mujeres fuesen menos proclives a participar en la encuesta, sería
+razonable aumentar los pesos de aquéllas que sí han contestado al
+cuestionario para que la distribución de mujeres en la muestra siga
+reflejando la distribución en la población. Una revisión de
+estrategias específicas para el caso de la opinión pública está
+disponible en @elliott2017 y @blumenthal2013 discute las estrategias
+usados por diferentes casas de encuestas.
 
-En el caso español, es común ponderar las encuestas por recuerdo de
-voto. Es información conocida ya sabemos la distribución de voto de
-cualquiera de las elecciones por las que preguntemos con lo que
-podemos ajustar la frecuencia de cada grupo de tal forma refleje la
-distribución real. Esta práctica es razonable por la estrecha relación
-entre voto pasado y voto futuro aunque no está exenta de críticas
-[@durand2015] y potenciales problemas [@escobar2014]. @blumenthal2013
-discute las estrategias usados por diferentes casas de encuestas. 
+En el caso español, es común re-ponderar las encuestas de opinión
+pública para ajustar el recuerdo de voto a la distribución de voto
+observada en el pasado. Es una práctica intuitivamente razonable ya
+que existe una estrecha relación entre voto pasado y futuro: el voto
+pasado es un buen predictor del voto futuro (tanto de la decisión de
+ir a votar como del partido elegido) así que corregir la distribución
+de recuerdo de voto puede servir para atajar problemas con, por
+ejemplo, la distribución en la intención de acudir a las urnas y las
+preferencias partidistas de los participantes en la encuesta en
+relación a la población de interés. Al mismo tiempo, es una estrategia
+que no está exenta de críticas [@durand2015] y han sido documentados
+potenciales problemas para la estimación electoral [@escobar2014].
 
-Sin embargo, hay dos problemas con los que debemos lidiar. Por una
-parte, el voto pasado es difícil de medir: es un evento que ocurre a
-gran distancia temporal y que puede ser difícil de recordar, que
-además puede estar sesgado por los mismos motivos que la intención de
-voto. Por otra, que no todos los entrevistados reponden a esta
-pregunta. Obivamente, las dos dimensiones pueden estar asociadas.
+Sin embargo, para hacer esta re-ponderación, hay dos problemas con los
+que debemos lidiar. Por una parte, y como ocurre con el resto de
+preguntas de la encuesta, no todos los entrevistados responden a la
+pregunta. Por otra parte, las últimas elecciones pueden ser un evento
+distante y de bajo interés con lo que los entrevistados pueden tener
+dificultades para recordar qué hicieron. Este segundo problema merece
+un poco más de nuestra atención.
 
-Es un resultado común en la literatura en Estaods Unidos que los
-entrevistados tienden a sobrereportar voto pasado. Por ejemplo,
 @mcdonald2007 muestran que elecciones con tasas de participación de
 50% están asociadas a encuestas en las que entre un 70 y un 90% de
 entrevistados dicen haber votado. Desde luego esto no es un problema
@@ -287,62 +312,76 @@ postelectorales en 43 países.
 Este sesgo debería ser evidencia suficiente de que el problema no es
 simplemente uno de memoria [@ansolabehere2017]. @ansolabehere2017, de
 hecho, ofrece una explicación que presenta problemas serios para las
-encuestas electorales. En su estudio, quizás los entrevistados sean
-sinceros sobre su voto pasado pero en problema está en la
-participación en la encuesta: aquellos que es más probable que voten
-es también más proble que acepten ser entrevistados, quizás por virtud
-cívica. Tal y como lo pone @sciarini2016, "responding to a survey
-about politics and misreporting on turnout are likely to be driven by
-similar factors". De hecho @burden2000 muestra que mayor reticencia a
-particpar en el National Election Study está de hecho asociada con
-menor probabilidad de votar. En este caso, la diferencia entre
-partipación real y estimada en eneustas refleja diferentes tasas de
-partipación en la encuesta entre votantes y abstencionistas.
+encuestas electorales. Quizás los entrevistados estén siendo sinceros
+sobre qué hicieron en el pasado pero tal vez el desajuste entre la
+distribución de recuerdo de voto y el valor real venga de un problema
+de participación diferencial en la encuesta: aquellos que es más
+probable que voten es también más proble que acepten ser
+entrevistados, quizás, como vimos antes, por virtud cívica. Tal y como
+lo pone @sciarini2016, "responding to a survey about politics and
+misreporting on turnout are likely to be driven by similar factors".
+De hecho @burden2000 muestra que mayor reticencia a participar en los
+American National Election Studies está de hecho asociada con menor
+probabilidad de votar. Compatible con esta interpretación, los
+experimentos dirigidos a reducir la presión por deseabilidad social en
+la pregunta sobre recuerdo de voto han tenido relativamente bajo éxito
+[@abelson1992; @holbrook2010; @hanmer2017].
 
-Además, es posible que haya que añadir la posibilidad de que los
-entrevistados, bien por falta de memoria o bien por deseabilidad,
-reporten que han votado por el partido ganador [@nadeau1993;
-@schmitt2015]. A number of experiments have tried to reduce the social
-desirability pressure from the past turnout questions, although with
-limited success [@abelson1992; @holbrook2010; @hanmer2017].
+Esto no elimina la posibilidad de que, efectivamente, haya sesgos
+causados por la distancia temporal a las últimas elecciones. Un patrón
+frecuentemente repetido es que, por ejemplo, los entrevistados
+indiquen que han votado por el partido ganador en una mayor proporción
+que la real [@nadeau1993; @schmitt2015] .
 
-Por ello, en la estimación electoral, al igual que más arriba, un
-modelo se encarga de asignar a cada entrevistado un voto pasado.
-Obivamente, este modelo funciona peor que el modelo para estimar
-intención de voto. Con la variable rellenada, podemos entonces
-corregir la distribución mediante poststratificación para que refleje
-la distribución de voto pasado. 
+Aún con estos inconvenientes, en el Baròmetre hemos optado por
+re-ponderar la encuesta para que el recuerdo de voto refleje la
+distribución real en las últimas elecciones. Para ello, imputamos un
+recuerdo de voto esperado a aquellos entrevistados que no contestan a
+la pregunta usando, como antes, un modelo predictivo. Como es de
+esperar, este modelo tiene un rendimiento inferior al usado para las
+variables de comportamiento futuro pero todavía lo bastante elevado
+como para poder usar sus predicciones para postestratificar la muestra
+de votantes.
 
-# Asignación de escaños {#sec:seats}
+# Estimación de la distribución de voto y escaños {#sec:seats}
 
-Los pasos anteriores nos permiten una aproximación a la intención de
-voto latente en la encuesta. El paso natural siguiente consiste en
-traducir estas proporciones de voto a escaños en el Parlament. La
-tarea es sencilla si tenemos las proporciones de voto para cada una de
-las circunscripciones en las que se eligen diputados: en ese caso solo
-tendremos que aplicar las reglas del reparto de escaños a los
-resultados estimados en cada circunscripción teniendo en cuenta la
-incertidumbre asociada a nuestras estimaciones.[^1] Para cada partido
-en cada circunscripción, extrae un resultado aleatorio de los que son
-factibles dada la estimación en la encuesta, elimina las listas que no
-llegan al umbral mínimo y reparte el resto usando una versión
-simplificada del método D'Hondt. Repitiendo el proceso una gran
-cantidad de veces, obtenemos la distribución de escaños en el
-Parlament que es consistente con los resultados en la encuesta.
+Los pasos anteriores nos permiten una aproximación a la distribución
+de voto esperado. Tras ellos, para cada individuo tenemos una
+intención de voto que combina lo que han contestado a la pregunta con
+lo que hemos imputado a los que no lo han hecho, una probabilidad de
+abstenerse para aquéllos que no saben qué harán el día de las
+elecciones y un peso que ajusta el recuerdo de voto. Con estas piezas
+podemos calcular el porcentaje de individuos en la muestra que apoyan
+a cada partido para diferentes escenarios de participación electoral.
 
-Sin embargo, el problema es más complicado porque la encuesta no está
-diseñada para estimar la distribución de voto en cada distrito y las
-muestras en circunscripciones pequeñas por lo general son demasiado
-pequeñas para poder hacer inferencias fiables sin información
-adicional. El modelo es un modelo bayesiano de regresión que calcula
-la distribución de voto en cada provincia como una combinación entre
-los resultados observados en la encuesta e información adicional
-aportada por el investigador.[^2] Una fuente razonable de información
-adicional es, por ejemplo, la distribución de voto en elecciones
-anteriores o, mejor aún, la distribución de voto _relativa_ en cada
-circunscripción con respecto al total en Cataluña. El analista,
-dispone de un parámetro para escoger en qué medida los resultados
-deben guiarse más o menos por esta información previa. 
+El paso natural siguiente consiste en traducir estas proporciones de
+voto a escaños en el Parlament. La tarea sería sencilla si pudiésemos
+usar la encuesta para hacer inferencias sobre el apoyo a cada partido
+en cada una de las circunscripciones en las que se eligen diputados.
+Ignoremos por un momento ese problema. En ese caso, podríamos aplicar
+las reglas de reparto de escaños a los resultados estimados en cada
+circunscripción. Sin embargo, es importante hacer esto teniendo en
+cuenta la incertidumbre asociada a nuestras estimaciones. Idealmente,
+haremos el reparto usando extracciones aleatorias de las
+distribuciones de apoyo a cada partido que son factible dada la
+estimación en la encuesta, esto es, teniendo en cuenta el margen de
+error muestral. Repitiendo esta simulación una gran cantidad de veces,
+obtendríamos la distribución de escaños en el Parlament que es
+consistente con los resultados en la encuesta.[^1]
+
+Volvamos ahora al problema de estimar la distribución de apoyo a cada
+partido en cada distrito. El tamaño de muestra del Baròmetre en las
+circunscripciones más pequeñas no es lo bastante grande como para
+hacer inferencias fiables sin información adicional. Una forma de
+superar este inconveniente es usando un modelo que permita combinar
+los resultados observados en la encuesta para cada provincia con
+información adicional que es accesible para el investigador. Una
+fuente es, por ejemplo, la distribución de voto en elecciones
+anteriores. Esta es la estrategia que hemos adoptado en los análisis.
+En concreto, usamos un modelo de regresión bayesiano que nos permite
+hacer la mejor combinación posible entre los resultados en la encuesta
+y los resultados históricos de cada circunscripción relativos al total
+en Cataluña.[^2] 
 
 # Conclusiones {#sec:conclusions}
 

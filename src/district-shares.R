@@ -1,6 +1,9 @@
 #!/usr/bin/env Rscript
 
-## Estimates vote share by district 
+## Estimates vote share by district by combining the small samples
+## from each district with priors coming from past elections (the
+## deviation of each district relative to Catalonia from the past
+## elections applied to the survey estimates)
 
 library(yaml)
 library(haven)
@@ -13,8 +16,8 @@ options(mc.cores = parallel::detectCores() - 1)
 ## ---------------------------------------- 
 ## Read in data and configuration
 
-config <- read_yaml("./config/config.yaml"); attach(config)
-bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
+list2env(read_yaml("./config/config.yaml"), envir=globalenv())
+bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 p_intention <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
 

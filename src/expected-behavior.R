@@ -2,9 +2,9 @@
 
 ## Assigns a behavior to all undecided/nonrespondents (party choice
 ## and decision to abstain). The vote choice model assigns a party.
-## The model for the decision to vote produces probabilities. In both
-## cases, stores the predicted behavior for each respondent regardless
-## of the answer they provided.
+## The model for the decision to vote produces probabilities. It
+## stores the predicted behavior for each respondent regardless of the
+## answer they provided.
 
 set.seed(314965)
 
@@ -20,8 +20,10 @@ library(doParallel)
 ## ---------------------------------------- 
 ## Read in data and configuration
 
-config <- read_yaml("./config/config.yaml"); attach(config)
-bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
+list2env(read_yaml("./config/config.yaml"), envir=globalenv())
+bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
+
+bop <- droplevels(bop)
 
 ## ---------------------------------------- 
 ## Cluster configuration
@@ -32,36 +34,73 @@ registerDoParallel(cl)
 ## ---------------------------------------- 
 ## Party choice model
 
+bop_intention_data <- subset(bop, !is.na(intention))
+
+train_index <- createDataPartition(bop_intention_data$intention,
+                                   p=.8,
+                                   list=FALSE)
+
+bop_intention_training <- bop_intention_data[ train_index, ]
+bop_intention_testing  <- bop_intention_data[-train_index, ]
+
 grid_partychoice <- expand.grid(eta=c(.01, .005, .001),
                                 max_depth=c(1, 2, 3, 4, 5),
                                 min_child_weight=1,
                                 subsample=0.8,
                                 colsample_bytree=0.8,
-                                nrounds=seq(1, 20, length.out=50)*100,
+                                nrounds=seq(1, 20, length.out=25)*100,
                                 gamma=0)
 
-control_partychoice <- trainControl(method="repeatedcv",
-                                    number=FOLDS,
-                                    repeats=REPEATS,
-                                    classProbs=TRUE,                            
-                                    summaryFunction=multiClassSummary)
+control_partychoice_cv <- trainControl(method="repeatedcv",
+                                       number=FOLDS,
+                                       repeats=REPEATS,
+                                       classProbs=TRUE,                            
+                                       summaryFunction=multiClassSummary)
+
+fit_partychoice_cv <- train(as.factor(intention) ~ .,
+                            data=droplevels(subset(bop_intention_training,
+                                                   select= -c(id, abstention))),
+                            method="xgbTree", 
+                            trControl=control_partychoice_cv,
+                            tuneGrid=grid_partychoice,
+                            na.action=na.pass,
+                            allowParallel=TRUE,                         
+                            verbose=FALSE,
+                            verbosity=0)
+
+## ---------------------------------------- 
+## Model evaluation
+
+confusionMatrix(fit_partychoice_cv)
+
+p_partychoice_testing <- predict(fit_partychoice_cv,
+                                 newdata=bop_intention_testing,
+                                 na.action=na.pass,
+                                 type="raw")
+
+confusionMatrix(data=p_partychoice_testing, reference=bop_intention_testing$intention)
+
+## ---------------------------------------- 
+## Re-fit on the full dataset
+
+control_partychoice <- trainControl(method="none",
+                                    classProbs=TRUE,
+                                    summaryFunction=multiClassSummary,
+                                    savePredictions=TRUE)
 
 fit_partychoice <- train(as.factor(intention) ~ .,
-                         data=droplevels(subset(bop,
-                                                subset=!is.na(bop$intention),
+                         data=droplevels(subset(bop_intention_data,
                                                 select= -c(id, abstention))),
                          method="xgbTree", 
                          trControl=control_partychoice,
-                         tuneGrid=grid_partychoice,
+                         tuneGrid=fit_partychoice_cv$bestTune,
                          na.action=na.pass,
-                         allowParallel=TRUE,                         
+                         allowParallel=FALSE,
                          verbose=FALSE,
                          verbosity=0)
 
-## Save model
-m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
-xgb.save(m, fname=file.path(MDL_FOLDER, "model-partychoice.xgb"))
-saveRDS(fit_partychoice, file.path(MDL_FOLDER, "model-partychoice.RDS"))
+## ---------------------------------------- 
+## Final model predictions
 
 ## Predicted party choice
 p_partychoice <- predict(fit_partychoice,
@@ -69,18 +108,21 @@ p_partychoice <- predict(fit_partychoice,
                          na.action=na.pass,
                          type="raw")
 
-## Save predictions to disk
-bop <- droplevels(bop)
+## Save model
+m <- xgb.Booster.complete(fit_partychoice$finalModel, saveraw=FALSE)
+xgb.save(m, fname=file.path(MDL_FOLDER, "model-partychoice.xgb"))
+saveRDS(fit_partychoice, file.path(MDL_FOLDER, "model-partychoice.RDS"))
 
+## Save predictions
 saveRDS(data.frame("id"=bop$id,
                    "p_partychoice"=p_partychoice),
         file.path(DTA_FOLDER, "predicted-partychoice.RDS"))
 
 
 ## ---------------------------------------- 
-## Confusion matrix
+## Confusion matrix with full model
 
-confusion_matrix <- as.data.frame(prop.table(confusionMatrix(fit_partychoice)$table, 1))
+confusion_matrix <- as.data.frame(prop.table(confusionMatrix(p_partychoice, bop$intention)$table, 1))
 
 p <- ggplot(confusion_matrix, aes(Prediction, Reference, fill=Freq))
 pq <- p +
@@ -92,59 +134,111 @@ pq <- p +
   theme(axis.text.x = element_text(angle=10, vjust=1, hjust=1))
 ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 
+
 ## ---------------------------------------- 
 ## Abstention model
+
+bop_abstention_data <- subset(bop, !is.na(abstention))
+
+train_index <- createDataPartition(bop_abstention_data$abstention,
+                                   p=.8,
+                                   list=FALSE)
+
+bop_abstention_training <- bop_abstention_data[ train_index, ]
+bop_abstention_testing  <- bop_abstention_data[-train_index, ]
+
+## Mitigates class imbalance via weights
+class_weights <- ifelse(bop_abstention_training$abstention == "Will.not.vote", 10, 1)
 
 grid_abstention <- expand.grid(eta=c(.01, .005, .001),
                                max_depth=c(1, 2, 3, 4, 5),
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=seq(1, 20, length.out=50)*100,
+                               nrounds=seq(1, 20, length.out=25)*100,
                                gamma=0)
 
-control_abstention <- trainControl(method="repeatedcv",
-                                   number=FOLDS,
-                                   repeats=REPEATS,
+control_abstention_cv <- trainControl(method="repeatedcv",
+                                      number=FOLDS,
+                                      repeats=REPEATS,
+                                      classProbs=TRUE,
+                                      savePredictions=TRUE)
+
+fit_abstention_cv <- train(as.factor(abstention) ~ .,
+                           data=droplevels(subset(bop_abstention_training,
+                                                  select= -c(id, intention))), 
+                           method="xgbTree", 
+                           trControl=control_abstention_cv,
+                           tuneGrid=grid_abstention,
+                           na.action=na.pass,
+                           probMethod="Bayes",
+                           ## weights=class_weights,
+                           allowParallel=TRUE,
+                           verbose=FALSE,
+                           verbosity=0)
+
+## ---------------------------------------- 
+## Model evaluation
+
+confusionMatrix(fit_abstention_cv)
+
+p_abstention_testing <- predict(fit_abstention_cv,
+                                newdata=bop_abstention_testing,
+                                na.action=na.pass,
+                                type="raw")
+
+confusionMatrix(data=p_abstention_testing, reference=bop_abstention_testing$abstention)
+
+## ---------------------------------------- 
+## Re-fit on the full dataset
+
+control_abstention <- trainControl(method="none",
                                    classProbs=TRUE,
-                                   summaryFunction=multiClassSummary,
                                    savePredictions=TRUE)
 
+class_weights <- ifelse(bop_abstention_data$abstention == "Will.not.vote", 10, 1)
+
 fit_abstention <- train(as.factor(abstention) ~ .,
-                        data=droplevels(subset(bop,
-                                               subset=!is.na(bop$abstention),
-                                               select= -c(id, intention))), 
+                        data=droplevels(subset(bop_abstention_data,
+                                               select= -c(id, intention))),
                         method="xgbTree", 
                         trControl=control_abstention,
-                        tuneGrid=grid_abstention,
+                        tuneGrid=fit_abstention_cv$bestTune,
                         na.action=na.pass,
                         probMethod="Bayes",
-                        allowParallel=TRUE,
+                        ## weights=class_weights,
+                        allowParallel=FALSE,
                         verbose=FALSE,
                         verbosity=0)
+
+## ---------------------------------------- 
+## Final model predictions
+
+## Predicted intention to vote
+bop$p_voting <- predict(fit_abstention,
+                        newdata=bop,
+                        na.action=na.pass,
+                        type="prob")$Will.vote
 
 ## Save model
 m <- xgb.Booster.complete(fit_abstention$finalModel, saveraw=FALSE)
 xgb.save(m, fname=file.path(MDL_FOLDER, "model-abstention.xgb"))
 saveRDS(fit_abstention, file.path(MDL_FOLDER, "model-abstention.RDS"))
 
-## Predicted abstention
-bop$p_voting <- predict(fit_abstention,
-                        newdata=bop,
-                        na.action=na.pass,
-                        type="prob")$Will.vote
-
+## Save predictions 
 saveRDS(data.frame("id"=bop$id,
                    "p_voting"=bop$p_voting),
         file.path(DTA_FOLDER, "predicted-voting.RDS"))
 
+## ---------------------------------------- 
 ## Calibration
-cal <- calibration(obs ~ Will.vote, data=fit_abstention$pred)
+
+cal <- calibration(obs ~ Will.vote, data=fit_abstention_cv$pred)
 
 ## Probability threshold to decide if voter abstains
 probs <- seq(0, 1, by=0.005)
-ths <- thresholder(fit_abstention, 
-                   threshold=probs, ## Calculed for will vote
+ths <- thresholder(fit_abstention_cv, 
+                   threshold=probs, ## Calculated for will vote
                    final=TRUE,
                    statistics="all")
 

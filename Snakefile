@@ -19,7 +19,7 @@ rule all:
         expand(join(MDL_FOLDER, "{models}.{exts}"),
                models=models,
                exts=exts),
-        join(DTA_FOLDER, "BOP221.RDS"),
+        join(RAW_DTA_FOLDER, RAW_DTA_FILE),
         join(DTA_FOLDER, "weight.RDS"),
         join(DTA_FOLDER, "predicted-partychoice.RDS"),
         join(DTA_FOLDER, "predicted-voting.RDS"),
@@ -50,8 +50,8 @@ rule past_behavior:
         join(DTA_FOLDER, "clean-bop.RDS"),
         cmd=join(SRC_FOLDER, "past-behavior.R")
     output:
-        join(DTA_FOLDER, "weight.RDS")
-        join(MDL_FOLDER, "model-recall.RDS")
+        join(DTA_FOLDER, "weight.RDS"),
+        join(MDL_FOLDER, "model-recall.RDS"),
         join(MDL_FOLDER, "model-recall.xgb")        
     shell:
         "Rscript {input.cmd}"

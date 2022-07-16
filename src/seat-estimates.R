@@ -13,7 +13,7 @@ library(dplyr)
 
 N <- 2000 ## Sample size to be used in simulation
 
-config <- read_yaml("./config/config.yaml"); attach(config)
+list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 district_share <- readRDS(file.path(DTA_FOLDER, "vote-share-district.RDS"))
 
 district_share <- as.data.frame(district_share)

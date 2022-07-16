@@ -4,8 +4,8 @@
 ## individual level (party choice and abstention). Party choice
 ## predictions are only applied to individuals who do not report
 ## intended behavior. Absention predictions are applied based on the
-## optimal cutoff. Estimates are weighed to electoral results of the
-## previous election.
+## optimal cutoff or user-set cutoff. Estimates are weighed to
+## electoral results of the previous election.
 
 library(yaml)
 library(tidyr)
@@ -14,8 +14,8 @@ library(ggplot2); theme_set(theme_bw())
 ## ---------------------------------------- 
 ## Read in data and configuratio
 
-config <- read_yaml("./config/config.yaml"); attach(config)
-bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
+list2env(read_yaml("./config/config.yaml"), envir=globalenv())
+bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 ## Recall weights
 recall_weights <- readRDS(file.path(DTA_FOLDER, "weight.RDS"))
@@ -41,7 +41,7 @@ bop$p_intention[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 bop$p_intention[bop$abstention == "Will.not.vote"] <- "No.votaria"
 ## Assign to voting all respondents with low predicted probability
 ## of voting (relative to cutoff)
-bop$p_intention[(bop$p_voting < .91) & is.na(bop$intention)] <- "No.votaria"
+bop$p_intention[(bop$p_voting < thr_voting) & is.na(bop$intention)] <- "No.votaria"
 bop$p_intention <- droplevels(bop$p_intention)
 
 ## Save results 

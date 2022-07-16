@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
 
 ## Creates weights that match reported behavior in previous elections
-## to electoral results. Non-reports are treated as having abstained.
+## to electoral results. Non-reports are assigned a behavior based on
+## a predictive model.
 
 library(yaml)
 library(haven)
@@ -14,8 +15,8 @@ library(doParallel)
 ## ---------------------------------------- 
 ## Read in data and configuration
 
-config <- read_yaml("./config/config.yaml"); attach(config)
-bop <- readRDS(file.path(DTA_FOLDER, "BOP221.RDS"))
+list2env(read_yaml("./config/config.yaml"), envir=globalenv())
+bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2021.csv"))
 
@@ -55,46 +56,85 @@ bop$recall <- as_factor(bop$recall)
 bop$recall <- addNA(bop$recall)
 ## All nonresponse/don't recall is abstention
 levels(bop$recall)[is.na(levels(bop$recall))] <- "No.va.votar"
-## Data error 
-levels(bop$recall)[levels(bop$recall) == "5"] <- "No.va.votar"
 ## Category to be predicted
 levels(bop$recall)[levels(bop$recall) == "No.ho.sap"] <- NA
 ## Rename category for consistency
-levels(bop$recall)[levels(bop$recall) == "Altres"] <- "Altres.partis"
+levels(bop$recall)[levels(bop$recall) == "Altres"] <- "Altres.partits"
 
 bop$recall <- droplevels(bop$recall)
 
 ## ---------------------------------------- 
 ## Predictive model
 
+bop_recall_data <- subset(bop, !is.na(recall))
+
+train_index <- createDataPartition(bop_recall_data$recall,
+                                   p=.8,
+                                   list=FALSE)
+
+bop_recall_training <- bop_recall_data[ train_index, ]
+bop_recall_testing  <- bop_recall_data[-train_index, ]
+
 grid_recall <- expand.grid(eta=c(.01, .005, .001),
                            max_depth=c(1, 2, 3, 4, 5),
                            min_child_weight=1,
                            subsample=0.8,
                            colsample_bytree=0.8,
-                           nrounds=seq(1, 20, length.out=50)*100,
+                           nrounds=seq(10, 20, length.out=25)*100,
                            gamma=0)
 
-control_recall <- trainControl(method="repeatedcv",
-                               number=FOLDS,
-                               repeats=REPEATS,
+control_recall_cv <- trainControl(method="repeatedcv",
+                                  number=FOLDS,
+                                  repeats=REPEATS,
+                                  classProbs=TRUE,
+                                  summaryFunction=multiClassSummary,
+                                  savePredictions=TRUE)
+
+fit_recall_cv <- train(as.factor(recall) ~ .,
+                       data=droplevels(subset(bop_recall_training,
+                                              select= -c(id))),
+                       method="xgbTree", 
+                       trControl=control_recall_cv,
+                       tuneGrid=grid_recall,
+                       na.action=na.pass,
+                       allowParallel=FALSE,
+                       verbose=FALSE,
+                       verbosity=0)
+
+## ---------------------------------------- 
+## Model evaluation
+
+confusionMatrix(fit_recall_cv)
+
+p_recall_testing <- predict(fit_recall_cv,
+                            newdata=bop_recall_testing,
+                            na.action=na.pass,
+                            type="raw")
+
+confusionMatrix(data=p_recall_testing, reference=bop_recall_testing$recall)
+
+## ---------------------------------------- 
+## Re-fit on the full dataset
+
+control_recall <- trainControl(method="none",
                                classProbs=TRUE,
                                summaryFunction=multiClassSummary,
                                savePredictions=TRUE)
 
 fit_recall <- train(as.factor(recall) ~ .,
-                    data=droplevels(subset(bop,
-                                           subset=!is.na(bop$recall),
+                    data=droplevels(subset(bop_recall_data,
                                            select= -c(id))),
                     method="xgbTree", 
                     trControl=control_recall,
-                    tuneGrid=grid_recall,
+                    tuneGrid=fit_recall_cv$bestTune,
                     na.action=na.pass,
                     allowParallel=FALSE,
-                    verbose=FALSE,                        
+                    verbose=FALSE,
                     verbosity=0)
 
-## Model predictions
+## ---------------------------------------- 
+## Final model predictions
+
 p_recall <- predict(fit_recall,
                     newdata=bop,
                     na.action=na.pass,
@@ -121,8 +161,6 @@ unweighted <- svytable(~ p_recall, svybop, Ntotal=100)
 svybop <- postStratify(svybop, ~p_recall, past_results)
 
 (svytable(~ p_recall, svybop, Ntotal=100))
-
-(bias <- unweighted - svytable(~ p_recall, svybop, Ntotal=100))
 
 ## ---------------------------------------- 
 ## Save weights

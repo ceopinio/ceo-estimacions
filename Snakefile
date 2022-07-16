@@ -7,9 +7,11 @@ SRC_FOLDER = config["SRC_FOLDER"]
 DTA_FOLDER = config["DTA_FOLDER"]
 RAW_DTA_FOLDER = config["RAW_DTA_FOLDER"]
 MDL_FOLDER = config["MDL_FOLDER"]
+RAW_DTA_FILE = "BOP222.sav"
 
 models=["model-partychoice", "model-abstention"]
 exts=["RDS", "xgb"]
+
 
 ## Rules
 rule all:
@@ -36,23 +38,27 @@ rule clean:
 
 rule data_cleaning:
     input:
-        dta=join(RAW_DTA_FOLDER, "BOP221.dta"),
+        dta=join(RAW_DTA_FOLDER, RAW_DTA_FILE),
         cmd=join(SRC_FOLDER, "data-cleaning.R")
-    output: join(DTA_FOLDER, "BOP221.RDS")
+    output: join(DTA_FOLDER, "clean-bop.RDS")
     shell:
         "Rscript {input.cmd}"
 
 rule past_behavior:
     input:
-        dta=join(DTA_FOLDER, "BOP221.RDS"),        
+        join(RAW_DTA_FOLDER, "results-2021.csv"),
+        join(DTA_FOLDER, "clean-bop.RDS"),
         cmd=join(SRC_FOLDER, "past-behavior.R")
-    output: join(DTA_FOLDER, "weight.RDS")
+    output:
+        join(DTA_FOLDER, "weight.RDS")
+        join(MDL_FOLDER, "model-recall.RDS")
+        join(MDL_FOLDER, "model-recall.xgb")        
     shell:
         "Rscript {input.cmd}"
             
 rule expected_behavior:
     input:
-        dta=join(DTA_FOLDER, "BOP221.RDS"),
+        dta=join(DTA_FOLDER, "clean-bop.RDS"),
         cmd=join(SRC_FOLDER, "expected-behavior.R")
     output:
         expand(join(MDL_FOLDER, "{models}.{exts}"),
@@ -67,7 +73,7 @@ rule expected_behavior:
 
 rule vote_shares:
     input:
-        join(DTA_FOLDER, "BOP221.RDS"),
+        join(DTA_FOLDER, "clean-bop.RDS"),
         join(DTA_FOLDER, "weight.RDS"),
         join(DTA_FOLDER, "predicted-partychoice.RDS"),
         join(DTA_FOLDER, "predicted-voting.RDS"),
@@ -81,7 +87,8 @@ rule vote_shares:
 
 rule district_shares:
     input:
-        join(DTA_FOLDER, "BOP221.RDS"),
+        join(RAW_DTA_FOLDER, "results-2021.csv"),
+        join(DTA_FOLDER, "clean-bop.RDS"),        
         join(DTA_FOLDER, "individual-behavior.RDS"),
         cmd=join(SRC_FOLDER, "district-shares.R")        
     output:

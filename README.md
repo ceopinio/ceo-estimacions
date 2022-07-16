@@ -31,28 +31,28 @@ project, like the location and name of the folders. The variables
 defined in the configuration file are attached to the R global
 environment for ease of use.
 
-1. `data-cleaning.R` reads in the raw data in SPSS/Stata format coming
-   from the field and selects and transforms the variables that are
-   used during the rest of the pipeline. It is worth noting that the
-   file also transforms the names of the different parties to a format
-   that can be used as factor names by R.
+1. `data-cleaning.R` reads in the raw data in SPSS format and selects
+   and transforms the variables that are used during the rest of the
+   pipeline. It is worth noting that the file also transforms the
+   names of the different parties to a format that can be used as
+   factor names by R.
 
 2. `past-behavior.R` estimates weights that match the reported
    electoral behavior in the last election to the true electoral
-   results. It is common for a large proportion of respondents to say
-   that they don't remember who they voted for or even whether they
-   voted in the last election. For these individuals, model
-   predictions are used. 
+   results. It is common for a proportion of respondents to say that
+   they don't remember who they voted for or even whether they voted
+   in the last election. For these individuals, model predictions are
+   used.
    
 3. `expected-behavior.R` estimates the electoral behavior of all
    respondents in the survey at the individual level. There are two
    behaviors of interest: whether the respondent will vote and the
-   party they will vote for. A large proportion of respondents do not
-   report one or both behaviors and for them the expected behavior is,
-   as before, assigned using two predictive models. The model for
-   party choice assigns a party to each respondent but the model for
-   turnout assigns a _probability_ of voting. A cutoff probability is
-   then estimated from the ROC curve of the model.
+   party they will vote for. A proportion of respondents do not report
+   one or both behaviors and for them the expected behavior is, as
+   before, assigned using two predictive models. The model for party
+   choice assigns a party to each respondent but the model for turnout
+   assigns a _probability_ of voting. A cutoff probability is then
+   estimated from the ROC curve of the model.
   
 4. `vote-shares.R` uses the individual predictions about past and
    expected behavior and estimates vote shares at the Catalonia level.
@@ -61,19 +61,19 @@ environment for ease of use.
    Individuals with a probability of voting below the cutoff, are
    expected to not vote.
 
-5. `district-shares.R` estimates district-level vote shares using the
-   Catalonia-level shares. This script uses the [package
-   `dshare`](https://github.com/griverorz/dshare) which needs to be
-   installed separately.
+5. `district-shares.R` estimates district-level vote shares using a
+   combination of survey data at the district level and some priors to
+   compensate for the small sample size. The priors are set to the
+   expected deviation between the electoral results from each district
+   and that from from Catalonia in the previous election. This script
+   uses the [package `dshare`](https://github.com/ceopinio/dshare)
+   which needs to be installed separately.
   
 6. `seat-estimates.R` uses the district-level vote shares to simulate
   the distribution of seats for each party. This script uses the
   [package `escons`](https://github.com/ceopinio/escons)
   which needs to be installed separately.
   
-The script `auxiliary.R` defines some helper functions that are used
-throughout the project.
-
 The `Snakefile` will ensure that the scripts are executed in the
 correct order. 
 

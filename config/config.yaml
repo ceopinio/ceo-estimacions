@@ -4,7 +4,5 @@ RAW_DTA_FOLDER: "dta/raw-dta"
 IMG_FOLDER: "img"
 TXT_FOLDER: "txt"
 SRC_FOLDER: "src"
-ANSIBLE_INVENTORY: "ansible/inventory"
-ANSIBLE_LOCALHOST: "ansible/localhost"
 FOLDS: 5
 REPEATS: 5

@@ -49,8 +49,12 @@
         owner: root
       
     - name: Install R packages
-      shell: Rscript -e "install.packages('renv')"
+      shell:
+        cmd: Rscript -e "install.packages('renv')"
+        chdir: /opt/ceobarometer
 
     - name: Restore from lockfile
-      shell: Rscript -e "renv::restore()"
+      shell:
+        cmd: Rscript -e "renv::restore()"
+        chdir: /opt/ceobarometer
         

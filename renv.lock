@@ -41,6 +41,16 @@
       "Hash": "af0e1955cb80bb36b7988cc657db261e",
       "Requirements": []
     },
+    "MLmetrics": {
+      "Package": "MLmetrics",
+      "Version": "1.1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c8c93b7ca030b43af9e0394700be4c7e",
+      "Requirements": [
+        "ROCR"
+      ]
+    },
     "Matrix": {
       "Package": "Matrix",
       "Version": "1.4-1",
@@ -77,6 +87,16 @@
       "Repository": "CRAN",
       "Hash": "45f0398006e83a5b10b72a90663d8d8c",
       "Requirements": []
+    },
+    "ROCR": {
+      "Package": "ROCR",
+      "Version": "1.0-11",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "cc151930e20e16427bc3d0daec62b4a9",
+      "Requirements": [
+        "gplots"
+      ]
     },
     "Rcpp": {
       "Package": "Rcpp",
@@ -148,6 +168,24 @@
       "Hash": "9fe98599ca456d6552421db0d6772d8f",
       "Requirements": [
         "bit"
+      ]
+    },
+    "bitops": {
+      "Package": "bitops",
+      "Version": "1.0-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "b7d8d8ee39869c18d8846a184dd8a1af",
+      "Requirements": []
+    },
+    "caTools": {
+      "Package": "caTools",
+      "Version": "1.18.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "34d90fa5845004236b9eacafc51d07b2",
+      "Requirements": [
+        "bitops"
       ]
     },
     "callr": {
@@ -483,6 +521,18 @@
       "Hash": "e30deda901954a80e035ad2e972ba7fd",
       "Requirements": []
     },
+    "gplots": {
+      "Package": "gplots",
+      "Version": "3.1.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "75437dd4c43599f6e9418ea249495fda",
+      "Requirements": [
+        "KernSmooth",
+        "caTools",
+        "gtools"
+      ]
+    },
     "gridExtra": {
       "Package": "gridExtra",
       "Version": "2.3",
@@ -499,6 +549,14 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "ac5c6baf7822ce8732b343f14c072c4d",
+      "Requirements": []
+    },
+    "gtools": {
+      "Package": "gtools",
+      "Version": "3.9.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "32600a0bea839c4d0ac998d7c547ecf7",
       "Requirements": []
     },
     "hardhat": {

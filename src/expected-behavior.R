@@ -164,7 +164,7 @@ grid_abstention <- expand.grid(eta=c(0.1, .01, .005, .001),
 
 control_abstention_cv <- trainControl(method="repeatedcv",
                                       number=FOLDS,
-                                      repeats=1,
+                                      repeats=5,
                                       classProbs=TRUE,
                                       savePredictions=TRUE)
 

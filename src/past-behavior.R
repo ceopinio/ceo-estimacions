@@ -61,12 +61,11 @@ levels(bop$recall)[levels(bop$recall) == "No.ho.sap"] <- NA
 ## Rename category for consistency
 levels(bop$recall)[levels(bop$recall) == "Altres"] <- "Altres.partits"
 
-bop$recall <- droplevels(bop$recall)
 
 ## ---------------------------------------- 
 ## Predictive model
 
-bop_recall_data <- subset(bop, !is.na(recall))
+bop_recall_data <- droplevels(subset(bop, !is.na(recall)))
 
 train_index <- createDataPartition(bop_recall_data$recall,
                                    p=.8,
@@ -75,24 +74,24 @@ train_index <- createDataPartition(bop_recall_data$recall,
 bop_recall_training <- bop_recall_data[ train_index, ]
 bop_recall_testing  <- bop_recall_data[-train_index, ]
 
-grid_recall <- expand.grid(eta=c(.01, .005, .001),
-                           max_depth=c(1, 2, 3, 4, 5),
+grid_recall <- expand.grid(eta=.001,
+                           max_depth=1,
                            min_child_weight=1,
                            subsample=0.8,
                            colsample_bytree=0.8,
-                           nrounds=seq(10, 20, length.out=25)*100,
+                           nrounds=2000,
                            gamma=0)
 
 control_recall_cv <- trainControl(method="repeatedcv",
                                   number=FOLDS,
-                                  repeats=REPEATS,
+                                  repeats=1,
                                   classProbs=TRUE,
                                   summaryFunction=multiClassSummary,
                                   savePredictions=TRUE)
 
 fit_recall_cv <- train(as.factor(recall) ~ .,
                        data=droplevels(subset(bop_recall_training,
-                                              select= -c(id))),
+                                              select= -id)),
                        method="xgbTree", 
                        trControl=control_recall_cv,
                        tuneGrid=grid_recall,
@@ -122,8 +121,8 @@ control_recall <- trainControl(method="none",
                                savePredictions=TRUE)
 
 fit_recall <- train(as.factor(recall) ~ .,
-                    data=droplevels(subset(bop_recall_data,
-                                           select= -c(id))),
+                    data=subset(bop_recall_data,
+                                select= -id),
                     method="xgbTree", 
                     trControl=control_recall,
                     tuneGrid=fit_recall_cv$bestTune,
@@ -144,7 +143,6 @@ p_recall <- predict(fit_recall,
 bop$p_recall <- p_recall
 ## Anyone reporting a post behavior, keeps that behavior
 bop$p_recall[!is.na(bop$recall)] <- bop$recall[!is.na(bop$recall)]
-bop$p_recall <- droplevels(bop$p_recall)
 
 ## Save model
 m <- xgb.Booster.complete(fit_recall$finalModel, saveraw=FALSE)

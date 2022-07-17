@@ -23,8 +23,6 @@ library(doParallel)
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
-bop <- droplevels(bop)
-
 ## ---------------------------------------- 
 ## Cluster configuration
 
@@ -34,7 +32,7 @@ registerDoParallel(cl)
 ## ---------------------------------------- 
 ## Party choice model
 
-bop_intention_data <- subset(bop, !is.na(intention))
+bop_intention_data <- droplevels(subset(bop, !is.na(intention)))
 
 train_index <- createDataPartition(bop_intention_data$intention,
                                    p=.8,
@@ -43,17 +41,17 @@ train_index <- createDataPartition(bop_intention_data$intention,
 bop_intention_training <- bop_intention_data[ train_index, ]
 bop_intention_testing  <- bop_intention_data[-train_index, ]
 
-grid_partychoice <- expand.grid(eta=c(.01, .005, .001),
-                                max_depth=c(1, 2, 3, 4, 5),
+grid_partychoice <- expand.grid(eta=.001,
+                                max_depth=1,
                                 min_child_weight=1,
                                 subsample=0.8,
                                 colsample_bytree=0.8,
-                                nrounds=seq(1, 20, length.out=25)*100,
+                                nrounds=2000,
                                 gamma=0)
 
 control_partychoice_cv <- trainControl(method="repeatedcv",
                                        number=FOLDS,
-                                       repeats=REPEATS,
+                                       repeats=1,
                                        classProbs=TRUE,                            
                                        summaryFunction=multiClassSummary)
 
@@ -89,8 +87,8 @@ control_partychoice <- trainControl(method="none",
                                     savePredictions=TRUE)
 
 fit_partychoice <- train(as.factor(intention) ~ .,
-                         data=droplevels(subset(bop_intention_data,
-                                                select= -c(id, abstention))),
+                         data=subset(bop_intention_data,
+                                     select= -c(id, abstention)),
                          method="xgbTree", 
                          trControl=control_partychoice,
                          tuneGrid=fit_partychoice_cv$bestTune,
@@ -122,7 +120,7 @@ saveRDS(data.frame("id"=bop$id,
 ## ---------------------------------------- 
 ## Confusion matrix with full model
 
-confusion_matrix <- as.data.frame(prop.table(confusionMatrix(p_partychoice, bop$intention)$table, 1))
+confusion_matrix <- as.data.frame(prop.table(confusionMatrix(p_partychoice, droplevels(bop$intention))$table, 1))
 
 p <- ggplot(confusion_matrix, aes(Prediction, Reference, fill=Freq))
 pq <- p +
@@ -138,9 +136,15 @@ ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 ## ---------------------------------------- 
 ## Abstention model
 
-bop_abstention_data <- subset(bop, !is.na(abstention))
+bop_abstention_data <- droplevels(subset(bop, !is.na(abstention)))
 
-train_index <- createDataPartition(bop_abstention_data$abstention,
+## Predict on a simplified version
+bop_abstention_data$abstention_twofactor <- as.factor(ifelse(bop_abstention_data$abstention %in%
+                                                               c("Probablement aniria a votar", "Segur que aniria a votar"),
+                                                             "Will.vote",
+                                                             "Will.not.vote"))
+
+train_index <- createDataPartition(bop_abstention_data$abstention_twofactor,
                                    p=.8,
                                    list=FALSE)
 
@@ -148,31 +152,31 @@ bop_abstention_training <- bop_abstention_data[ train_index, ]
 bop_abstention_testing  <- bop_abstention_data[-train_index, ]
 
 ## Mitigates class imbalance via weights
-class_weights <- ifelse(bop_abstention_training$abstention == "Will.not.vote", 10, 1)
+class_weights <- ifelse(bop_abstention_training$abstention_twofactor == "Will.not.vote", 5, 1)
 
-grid_abstention <- expand.grid(eta=c(.01, .005, .001),
-                               max_depth=c(1, 2, 3, 4, 5),
+grid_abstention <- expand.grid(eta=.001,
+                               max_depth=1,
                                min_child_weight=1,
                                subsample=0.8,
                                colsample_bytree=0.8,
-                               nrounds=seq(1, 20, length.out=25)*100,
+                               nrounds=2000,
                                gamma=0)
 
 control_abstention_cv <- trainControl(method="repeatedcv",
                                       number=FOLDS,
-                                      repeats=REPEATS,
+                                      repeats=1,
                                       classProbs=TRUE,
                                       savePredictions=TRUE)
 
-fit_abstention_cv <- train(as.factor(abstention) ~ .,
+fit_abstention_cv <- train(as.factor(abstention_twofactor) ~ .,
                            data=droplevels(subset(bop_abstention_training,
-                                                  select= -c(id, intention))), 
+                                                  select= -c(id, intention, abstention))), 
                            method="xgbTree", 
                            trControl=control_abstention_cv,
                            tuneGrid=grid_abstention,
                            na.action=na.pass,
                            probMethod="Bayes",
-                           ## weights=class_weights,
+                           weights=class_weights,
                            allowParallel=TRUE,
                            verbose=FALSE,
                            verbosity=0)
@@ -187,7 +191,7 @@ p_abstention_testing <- predict(fit_abstention_cv,
                                 na.action=na.pass,
                                 type="raw")
 
-confusionMatrix(data=p_abstention_testing, reference=bop_abstention_testing$abstention)
+confusionMatrix(data=p_abstention_testing, reference=bop_abstention_testing$abstention_twofactor)
 
 ## ---------------------------------------- 
 ## Re-fit on the full dataset
@@ -196,11 +200,11 @@ control_abstention <- trainControl(method="none",
                                    classProbs=TRUE,
                                    savePredictions=TRUE)
 
-class_weights <- ifelse(bop_abstention_data$abstention == "Will.not.vote", 10, 1)
+class_weights <- ifelse(bop_abstention_data$abstention_twofactor == "Will.not.vote", 5, 1)
 
-fit_abstention <- train(as.factor(abstention) ~ .,
-                        data=droplevels(subset(bop_abstention_data,
-                                               select= -c(id, intention))),
+fit_abstention <- train(as.factor(abstention_twofactor) ~ .,
+                        data=subset(bop_abstention_data,
+                                    select= -c(id, intention, abstention)),
                         method="xgbTree", 
                         trControl=control_abstention,
                         tuneGrid=fit_abstention_cv$bestTune,

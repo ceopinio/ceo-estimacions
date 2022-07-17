@@ -33,15 +33,20 @@ bop <- merge(bop, p_voting, by="id") ## Probability of *not* voting
 ## ---------------------------------------- 
 ## Consolidate results
 
+bop$abstention_twofactor <- as.factor(ifelse(bop$abstention %in%
+                                               c("Probablement aniria a votar", "Segur que aniria a votar"),
+                                             "Will.vote",
+                                             "Will.not.vote"))
+
 ## Predicted behavior defaults to reported behavior
 bop$p_intention <- bop$intention
 ## If they did not report a party choice, assign the predicted 
 bop$p_intention[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 ## If they declare they will not vote, use that behavior
-bop$p_intention[bop$abstention == "Will.not.vote"] <- "No.votaria"
+bop$p_intention[bop$abstention_twofactor == "Will.not.vote"] <- "No.votaria"
 ## Assign to voting all respondents with low predicted probability
 ## of voting (relative to cutoff)
-bop$p_intention[(bop$p_voting < thr_voting) & is.na(bop$intention)] <- "No.votaria"
+bop$p_intention[(bop$p_voting < .8) & is.na(bop$intention)] <- "No.votaria"
 bop$p_intention <- droplevels(bop$p_intention)
 
 ## Save results 
@@ -74,8 +79,8 @@ saveRDS(estimates, file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 ## Simulated effect of turnout rates
 
 turnout <- seq(.4, 1, by=0.01) ## True turnout will trail expected turnout
-n_voting <- (1 - turnout) *
-  (nrow(bop) - sum(bop$abstention == "Will.not.vote", na.rm=TRUE))
+n_voting <- (1 - turnout) * 
+  (nrow(bop) - sum(bop$abstention_twofactor == "Will.not.vote", na.rm=TRUE))
 
 vote <- bop$intention
 vote[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
@@ -86,7 +91,7 @@ pabstainers <- lapply(round(n_voting), \(x) order(bop$p_voting)[1:x])
 last_prob_pabstainers <- sapply(pabstainers, \(x) max(bop$p_voting[x]))
 
 ## Declared as abstainers
-dabstainers <- rep(list(which(bop$abstention == "Will.not.vote")), length(turnout))
+dabstainers <- rep(list(which(bop$abstention_twofactor == "Will.not.vote")), length(turnout))
 abstainers <- mapply(function(x, y) c(x, y), x=pabstainers, y=dabstainers)
 
 for (i in seq_along(turnout)) vote[[i]][abstainers[[i]]] <- "No.votaria"

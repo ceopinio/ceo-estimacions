@@ -35,11 +35,15 @@ bop <- droplevels(bop)
 ## Calculate relation between results in district and results in Catalonia
 sresults <- prop.table(xtabs(weight ~ p_intention, data=bop))
 
+## Some parties may have changed names between the two elections
+## Catalunya En Comu Podem 
+past_results[past_results$party == "Catalunya.en.Comu.Podem", "party"] <- "En.Comu.Podem"
+
 ## Shares in previous election
 results <- past_results |>
   filter(party != "Censo") |>
   mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits") ~
-                           "Altres.partits",
+                           "Altres",
                          TRUE ~ party),
          party=factor(party, levels(bop$p_intention))) |>
   group_by(provincia, party) |>

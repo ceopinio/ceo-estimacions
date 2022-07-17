@@ -49,8 +49,7 @@ bop <- bop |>
                 ~ if_else(.x >= 98,
                           NA_integer_,
                           as.integer(.x))), ## Proximity/affect by party
-         across(c("GENERE",
-                  "EDAT_GR",
+         across(c("EDAT_GR",
                   "RELIGIO_FREQ",
                   "SIT_LAB",
                   "ACTITUD_INDEPENDENCIA",
@@ -77,6 +76,13 @@ bop <- bop |>
                         perl=TRUE), ~ if_else(.x >= 98,
                                               NA_real_,
                                               as.numeric(.x))), ## Evaluation
+         across(c("SIT_POL_CAT", "SIT_ECO_ESP", "SIT_POL_ESP"),
+                ~ case_when(.x %in% c(1, 2) ~ 1,
+                            .x == 3 ~ 0,
+                            .x %in% c(4, 5) ~ -1,
+                            TRUE ~ NA_real_)),
+         GENERE=case_when(GENERE %in% c(1, 2) ~ GENERE,
+                          TRUE ~ NA_real_),
          LLENGUA_PRIMERA=case_when(LLENGUA_PRIMERA %in% c(1, 2, 3, 80) ~ LLENGUA_PRIMERA,
                                    LLENGUA_PRIMERA == 4 ~ 80, ## Not enough cases for Aranes
                                    TRUE ~ NA_real_),
@@ -127,7 +133,6 @@ bop <- bop |>
          "INF_POL_TV_FREQ",
          "INF_POL_XARXES_FREQ",
          "PART_ELECCIONS",
-         "INT_PARLAMENT_PART",       
          "polinfo_tv",
          "polinfo_radio",
          "estudis_1_5",
@@ -158,6 +163,8 @@ clean_party_name <- function(x) {
 
 bop$intention <- clean_party_name(bop$intention)
 bop$recall <- clean_party_name(bop$recall)
+
+bop <- droplevels(bop)
 
 ## ---------------------------------------- 
 ## Save data

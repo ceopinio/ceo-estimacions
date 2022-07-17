@@ -36,7 +36,7 @@ bop <- droplevels(bop)
 sresults <- prop.table(xtabs(weight ~ p_intention, data=bop))
 
 ## Some parties may have changed names between the two elections
-## Catalunya En Comu Podem 
+## Catalunya En Comu Podem -> En Comu Podem
 past_results[past_results$party == "Catalunya.en.Comu.Podem", "party"] <- "En.Comu.Podem"
 
 ## Shares in previous election

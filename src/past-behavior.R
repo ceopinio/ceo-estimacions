@@ -4,6 +4,8 @@
 ## to electoral results. Non-reports are assigned a behavior based on
 ## a predictive model.
 
+set.seed(314965)
+
 library(yaml)
 library(haven)
 library(survey)
@@ -74,17 +76,17 @@ train_index <- createDataPartition(bop_recall_data$recall,
 bop_recall_training <- bop_recall_data[ train_index, ]
 bop_recall_testing  <- bop_recall_data[-train_index, ]
 
-grid_recall <- expand.grid(eta=.001,
-                           max_depth=1,
-                           min_child_weight=1,
-                           subsample=0.8,
-                           colsample_bytree=0.8,
-                           nrounds=2000,
+grid_recall <- expand.grid(eta=c(0.1, .01, .005, .001),
+                           max_depth=c(1, 2, 3, 4, 5, 7),
+                           min_child_weight=c(1, 3, 5),
+                           subsample=c(0.7, 0.8, 1),
+                           colsample_bytree=c(0.7, 0.8, 1),
+                           nrounds=seq(1, 20, length.out=25)*100,
                            gamma=0)
 
 control_recall_cv <- trainControl(method="repeatedcv",
                                   number=FOLDS,
-                                  repeats=1,
+                                  repeats=REPEATS,
                                   classProbs=TRUE,
                                   summaryFunction=multiClassSummary,
                                   savePredictions=TRUE)

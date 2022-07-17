@@ -41,13 +41,13 @@ train_index <- createDataPartition(bop_intention_data$intention,
 bop_intention_training <- bop_intention_data[ train_index, ]
 bop_intention_testing  <- bop_intention_data[-train_index, ]
 
-grid_partychoice <- expand.grid(eta=.001,
-                                max_depth=1,
-                                min_child_weight=1,
-                                subsample=0.8,
-                                colsample_bytree=0.8,
-                                nrounds=2000,
-                                gamma=0)
+grid_partychoice <- expand.grid(eta=c(0.1, .01, .005, .001),
+                               max_depth=c(1, 2, 3, 4, 5, 7),
+                               min_child_weight=c(1, 3, 5),
+                               subsample=c(0.7, 0.8, 1),
+                               colsample_bytree=c(0.7, 0.8, 1),
+                               nrounds=seq(1, 20, length.out=25)*100,
+                               gamma=0)
 
 control_partychoice_cv <- trainControl(method="repeatedcv",
                                        number=FOLDS,
@@ -154,12 +154,12 @@ bop_abstention_testing  <- bop_abstention_data[-train_index, ]
 ## Mitigates class imbalance via weights
 class_weights <- ifelse(bop_abstention_training$abstention_twofactor == "Will.not.vote", 5, 1)
 
-grid_abstention <- expand.grid(eta=.001,
-                               max_depth=1,
-                               min_child_weight=1,
-                               subsample=0.8,
-                               colsample_bytree=0.8,
-                               nrounds=2000,
+grid_abstention <- expand.grid(eta=c(0.1, .01, .005, .001),
+                               max_depth=c(1, 2, 3, 4, 5, 7),
+                               min_child_weight=c(1, 3, 5),
+                               subsample=c(0.7, 0.8, 1),
+                               colsample_bytree=c(0.7, 0.8, 1),
+                               nrounds=seq(1, 20, length.out=25)*100,
                                gamma=0)
 
 control_abstention_cv <- trainControl(method="repeatedcv",
@@ -210,7 +210,7 @@ fit_abstention <- train(as.factor(abstention_twofactor) ~ .,
                         tuneGrid=fit_abstention_cv$bestTune,
                         na.action=na.pass,
                         probMethod="Bayes",
-                        ## weights=class_weights,
+                        weights=class_weights,
                         allowParallel=FALSE,
                         verbose=FALSE,
                         verbosity=0)

@@ -11,26 +11,17 @@ library(dplyr)
 ## ---------------------------------------- 
 ## Read in data and configuration
 
-N <- 2000 ## Sample size to be used in simulation
+N <- 1000 ## Sample size to be used in simulation
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 district_share <- readRDS(file.path(DTA_FOLDER, "vote-share-district.RDS"))
 
-district_share <- as.data.frame(district_share)
+district_share <- as.data.frame(t(district_share))
 
 ## ---------------------------------------- 
 ## Seat simulation
 
-## Reshape to data.frame with parties in rows and districts in columns
-district_share <- reshape(district_share,
-                          timevar="provincia",
-                          idvar="p_intention",
-                          direction="wide")
-
-district_share <- district_share[district_share$p_intention != "Altres.partits", ]
-names(district_share) <- gsub("Freq.", "", names(district_share))
-party_names <- district_share$p_intention
-district_share$p_intention <- NULL
+district_share <- district_share[rownames(district_share) != "Altres", ]
 
 ## Simulate share distribution
 simulated_seats <- simulate(district_share,

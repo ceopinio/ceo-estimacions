@@ -35,9 +35,8 @@ bop <- bop |>
          recall=case_when(REC_PARLAMENT_VOT_R < 93 ~ REC_PARLAMENT_VOT_R,
                           REC_PARLAMENT_VOT_R %in% c(93, 94) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
                           REC_PARLAMENT_VOT_R > 96 ~ 98), ## Vote recall
-         abstention=case_when(INT_PARLAMENT_PART %in% c(1, 2) ~ "Will.not.vote",
-                              INT_PARLAMENT_PART %in% c(4, 5) ~ "Will.vote",
-                              TRUE ~ NA_character_), ## Stated abstention
+         abstention=case_when(INT_PARLAMENT_PART %in% c(1, 2, 4, 5) ~ INT_PARLAMENT_PART,
+                              TRUE ~ NA_real_), ## Stated abstention
          simpatia=case_when(SIMPATIA_PARTIT_AGRUPADA_R <= 95 ~ SIMPATIA_PARTIT_AGRUPADA_R,
                             SIMPATIA_PARTIT_AGRUPADA_R > 95 ~ NA_real_), ## Stated proximity
          across(c("IDEOL_0_10",

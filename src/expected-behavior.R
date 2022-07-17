@@ -51,7 +51,7 @@ grid_partychoice <- expand.grid(eta=c(0.1, .01, .005, .001),
 
 control_partychoice_cv <- trainControl(method="repeatedcv",
                                        number=FOLDS,
-                                       repeats=1,
+                                       repeats=REPEATS,
                                        classProbs=TRUE,                            
                                        summaryFunction=multiClassSummary)
 

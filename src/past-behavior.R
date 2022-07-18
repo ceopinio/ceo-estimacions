@@ -78,12 +78,12 @@ bop_recall_training <- bop_recall_data[ train_index, ]
 bop_recall_testing  <- bop_recall_data[-train_index, ]
 
 
-grid_recall <- expand.grid(eta=.01,
+grid_recall <- expand.grid(eta=c(.1, .01, .001),
                            max_depth=c(1, 2, 3, 5, 7),
                            min_child_weight=3,
                            subsample=.8,
                            colsample_bytree=.8,
-                           nrounds=seq(1, 20, length.out=10)*100,
+                           nrounds=seq(1, 20, length.out=20)*100,
                            gamma=0)
 
 control_recall_cv <- trainControl(method="repeatedcv",

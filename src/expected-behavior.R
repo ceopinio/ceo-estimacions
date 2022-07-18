@@ -157,8 +157,8 @@ bop_abstention_testing  <- bop_abstention_data[-train_index, ]
 ## Mitigates class imbalance via weights
 class_weights <- ifelse(bop_abstention_training$abstention_twofactor == "Will.not.vote", 5, 1)
 
-
 grid_abstention <- expand.grid(eta=c(.1, .01, .001),
+                               max_depth=c(1, 2, 3, 5, 7),
                                min_child_weight=3,
                                subsample=.8,
                                colsample_bytree=.8,

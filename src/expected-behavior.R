@@ -44,7 +44,7 @@ bop_intention_testing  <- bop_intention_data[-train_index, ]
 
 grid_partychoice <- expand.grid(eta=c(.1, .01, .001),
                                 max_depth=c(1, 2, 3, 5, 7),
-                                min_child_weight=3,
+                                min_child_weight=c(1, 3, 5),
                                 subsample=.8,
                                 colsample_bytree=.8,
                                 nrounds=seq(1, 20, length.out=20)*100,
@@ -159,7 +159,7 @@ class_weights <- ifelse(bop_abstention_training$abstention_twofactor == "Will.no
 
 grid_abstention <- expand.grid(eta=c(.1, .01, .001),
                                max_depth=c(1, 2, 3, 5, 7),
-                               min_child_weight=3,
+                               min_child_weight=c(1, 3, 5),
                                subsample=.8,
                                colsample_bytree=.8,
                                nrounds=seq(1, 20, length.out=20)*100,

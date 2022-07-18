@@ -13,6 +13,7 @@ library(haven)
 library(labelled)
 library(dplyr)
 library(caret); library(xgboost)
+library(MLmetrics)
 library(stringi)
 library(pROC)
 library(doParallel)
@@ -41,17 +42,17 @@ train_index <- createDataPartition(bop_intention_data$intention,
 bop_intention_training <- bop_intention_data[ train_index, ]
 bop_intention_testing  <- bop_intention_data[-train_index, ]
 
-grid_partychoice <- expand.grid(eta=c(0.1, .01, .005, .001),
-                               max_depth=c(1, 2, 3, 4, 5, 7),
-                               min_child_weight=c(1, 3, 5),
-                               subsample=c(0.7, 0.8, 1),
-                               colsample_bytree=c(0.7, 0.8, 1),
-                               nrounds=seq(1, 20, length.out=25)*100,
-                               gamma=0)
+grid_partychoice <- expand.grid(eta=.01,
+                                max_depth=c(1, 2, 3, 5, 7),
+                                min_child_weight=3,
+                                subsample=.8,
+                                colsample_bytree=.8,
+                                nrounds=seq(1, 20, length.out=10)*100,
+                                gamma=0)
 
 control_partychoice_cv <- trainControl(method="repeatedcv",
                                        number=FOLDS,
-                                       repeats=REPEATS,
+                                       repeats=1,
                                        classProbs=TRUE,                            
                                        summaryFunction=multiClassSummary)
 
@@ -120,7 +121,9 @@ saveRDS(data.frame("id"=bop$id,
 ## ---------------------------------------- 
 ## Confusion matrix with full model
 
-confusion_matrix <- as.data.frame(prop.table(confusionMatrix(p_partychoice, droplevels(bop$intention))$table, 1))
+confusion_matrix <- as.data.frame(prop.table(confusionMatrix(p_partychoice,
+                                                             droplevels(bop$intention))$table,
+                                             1))
 
 p <- ggplot(confusion_matrix, aes(Prediction, Reference, fill=Freq))
 pq <- p +
@@ -154,12 +157,13 @@ bop_abstention_testing  <- bop_abstention_data[-train_index, ]
 ## Mitigates class imbalance via weights
 class_weights <- ifelse(bop_abstention_training$abstention_twofactor == "Will.not.vote", 5, 1)
 
-grid_abstention <- expand.grid(eta=c(0.1, .01, .005, .001),
-                               max_depth=c(1, 2, 3, 4, 5, 7),
-                               min_child_weight=c(1, 3, 5),
-                               subsample=c(0.7, 0.8, 1),
-                               colsample_bytree=c(0.7, 0.8, 1),
-                               nrounds=seq(1, 20, length.out=25)*100,
+
+grid_abstention <- expand.grid(eta=.01,
+                               max_depth=c(1, 2, 3, 5, 7),
+                               min_child_weight=3,
+                               subsample=.8,
+                               colsample_bytree=.8,
+                               nrounds=seq(1, 20, length.out=10)*100,
                                gamma=0)
 
 control_abstention_cv <- trainControl(method="repeatedcv",

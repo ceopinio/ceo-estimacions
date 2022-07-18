@@ -26,7 +26,7 @@ district_share <- district_share[rownames(district_share) != "Altres", ]
 ## Simulate share distribution
 simulated_seats <- simulate(district_share,
                             moe(district_share, N, 0.95),
-                            names=party_names)
+                            names=row.names(district_share))
 
 simulated_seats <- as.data.frame(simulated_seats)
 saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats-simulation.RDS"))

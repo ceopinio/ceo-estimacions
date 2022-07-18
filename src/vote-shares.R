@@ -45,6 +45,7 @@ bop$p_intention <- bop$intention
 ## If they did not report a party choice, assign the predicted 
 bop$p_intention[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 ## If they declare they will not vote, use that behavior
+levels(bop$p_intention) <- c(levels(bop$p_intention), "No.votaria")
 bop$p_intention[bop$abstention_twofactor == "Will.not.vote"] <- "No.votaria"
 ## Assign to voting all respondents with low predicted probability
 ## of voting (relative to cutoff)

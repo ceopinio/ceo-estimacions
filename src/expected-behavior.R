@@ -42,12 +42,12 @@ train_index <- createDataPartition(bop_intention_data$intention,
 bop_intention_training <- bop_intention_data[ train_index, ]
 bop_intention_testing  <- bop_intention_data[-train_index, ]
 
-grid_partychoice <- expand.grid(eta=.01,
+grid_partychoice <- expand.grid(eta=c(.1, .01, .001),
                                 max_depth=c(1, 2, 3, 5, 7),
                                 min_child_weight=3,
                                 subsample=.8,
                                 colsample_bytree=.8,
-                                nrounds=seq(1, 20, length.out=10)*100,
+                                nrounds=seq(1, 20, length.out=20)*100,
                                 gamma=0)
 
 control_partychoice_cv <- trainControl(method="repeatedcv",
@@ -158,12 +158,11 @@ bop_abstention_testing  <- bop_abstention_data[-train_index, ]
 class_weights <- ifelse(bop_abstention_training$abstention_twofactor == "Will.not.vote", 5, 1)
 
 
-grid_abstention <- expand.grid(eta=.01,
-                               max_depth=c(1, 2, 3, 5, 7),
+grid_abstention <- expand.grid(eta=c(.1, .01, .001),
                                min_child_weight=3,
                                subsample=.8,
                                colsample_bytree=.8,
-                               nrounds=seq(1, 20, length.out=10)*100,
+                               nrounds=seq(1, 20, length.out=20)*100,
                                gamma=0)
 
 control_abstention_cv <- trainControl(method="repeatedcv",

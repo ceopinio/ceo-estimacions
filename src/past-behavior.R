@@ -11,6 +11,7 @@ library(haven)
 library(survey)
 library(labelled)
 library(caret); library(xgboost)
+library(MLmetrics)
 library(dplyr)
 library(doParallel)
 
@@ -76,17 +77,18 @@ train_index <- createDataPartition(bop_recall_data$recall,
 bop_recall_training <- bop_recall_data[ train_index, ]
 bop_recall_testing  <- bop_recall_data[-train_index, ]
 
-grid_recall <- expand.grid(eta=c(0.1, .01, .005, .001),
-                           max_depth=c(1, 2, 3, 4, 5, 7),
-                           min_child_weight=c(1, 3, 5),
-                           subsample=c(0.7, 0.8, 1),
-                           colsample_bytree=c(0.7, 0.8, 1),
-                           nrounds=seq(1, 20, length.out=25)*100,
+
+grid_recall <- expand.grid(eta=.01,
+                           max_depth=c(1, 2, 3, 5, 7),
+                           min_child_weight=3,
+                           subsample=.8,
+                           colsample_bytree=.8,
+                           nrounds=seq(1, 20, length.out=10)*100,
                            gamma=0)
 
 control_recall_cv <- trainControl(method="repeatedcv",
                                   number=FOLDS,
-                                  repeats=REPEATS,
+                                  repeats=1,
                                   classProbs=TRUE,
                                   summaryFunction=multiClassSummary,
                                   savePredictions=TRUE)

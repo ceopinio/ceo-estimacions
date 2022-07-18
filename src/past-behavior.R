@@ -87,7 +87,7 @@ grid_recall <- expand.grid(eta=c(.1, .01, .001),
 
 control_recall_cv <- trainControl(method="repeatedcv",
                                   number=FOLDS,
-                                  repeats=1,
+                                  repeats=REPEATS,
                                   classProbs=TRUE,
                                   summaryFunction=multiClassSummary,
                                   savePredictions=TRUE)

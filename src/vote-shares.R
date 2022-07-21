@@ -11,6 +11,7 @@
 library(yaml)
 library(tidyr)
 library(ggplot2); theme_set(theme_bw())
+library(escons)
 
 ## ---------------------------------------- 
 ## Read in data and configuratio
@@ -94,11 +95,14 @@ vote[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
 vote <- rep(list(as.character(vote)), length(turnout))
 
 ## Predicted as abstainers (among those who have reported they will vote)
-pabstainers <- lapply(round(n_notvoting), \(x) sort(bop$p_voting[bop$abstention_twofactor == "Will.vote"])[1:x])
+pabstainers <- lapply(round(n_notvoting),
+                      \(x) sort(bop$p_voting[bop$abstention_twofactor == "Will.vote"])[1:x])
 last_prob_pabstainers <- lapply(pabstainers, max)
 
-for (i in seq_along(last_prob_pabstainers)) pabstainers[[i]] <- which(bop$p_voting < last_prob_pabstainers[[i]] &
-                                                                        bop$abstention_twofactor == "Will.vote")
+for (i in seq_along(last_prob_pabstainers)) {
+  pabstainers[[i]] <- which(bop$p_voting < last_prob_pabstainers[[i]] &
+                              bop$abstention_twofactor == "Will.vote")
+}
 
 ## Declared as abstainers
 dabstainers <- rep(list(which(bop$abstention_twofactor == "Will.not.vote")), length(turnout))
@@ -106,8 +110,10 @@ abstainers <- mapply(function(x, y) unique(c(x, y)), x=pabstainers, y=dabstainer
 
 for (i in seq_along(turnout)) vote[[i]][abstainers[[i]]] <- "No.votaria"
 
-sim <- as.data.frame(sapply(vote, \(x) prop.table(xtabs(bop$weight ~ x, subset=x != "No.votaria"))))
-eturnout <- 1 - sapply(vote, \(x) prop.table(xtabs(weight ~ x == "No.votaria", data=bop))["TRUE"]) ## Actual turnout
+sim <- as.data.frame(sapply(vote,
+                            \(x) prop.table(xtabs(bop$weight ~ x, subset=x != "No.votaria"))))
+eturnout <- 1 - sapply(vote,
+                       \(x) prop.table(xtabs(weight ~ x == "No.votaria", data=bop))["TRUE"]) ## Actual turnout
 
 names(sim) <- paste0("p", turnout*100)
 sim$party <- rownames(sim)
@@ -146,3 +152,83 @@ pq <- p + geom_line() +
  
 ggsave(file.path(IMG_FOLDER, "simulation-voting.pdf"), pq)
  
+## ---------------------------------------- 
+## Plot the results
+
+## Prettify names
+estimates$party <- recode_factor(estimates$party,
+                                 "PSCPSOE"="PSC",
+                                 "En.Comu.Podem"="ECP",
+                                 "Junts.per.Catalunya"="Junts")
+
+## Normalize results to candidacies and calculate CI
+estimates <- estimates[!estimates$party %in% c("Altres", "No.votaria"),
+                       c("party", "weighted")]
+estimates$propvote <- estimates$weighted/sum(estimates$weighted) 
+
+moe <- moe(estimates$propvote, nrow(bop), .95)
+estimates$lb <- estimates$propvote - moe
+estimates$ub <- estimates$propvote + moe
+
+estimates <- estimates |>
+  mutate(propvote=propvote*100,
+         ub=ub*100,
+         lb=lb*100)
+
+## Sort levels by results
+sorted_levels <- estimates$party[order(estimates$propvote, decreasing=TRUE)]
+estimates$party <- factor(estimates$party, levels=sorted_levels)
+
+## Define party colors
+party_color <- unlist(lapply(COLORS, \(x) x[1]))
+party_color_alpha  <- unlist(lapply(COLORS, \(x) x[2]))
+
+party_color <- party_color[levels(estimates$party)]
+party_color_alpha <- party_color_alpha[levels(estimates$party)]
+
+## Report plot
+p <- ggplot(estimates,
+            aes(party, propvote, fill=party))
+pq <- p + geom_col(width=0.7,
+           show.legend=FALSE) +
+  geom_hline(aes(yintercept=0)) +
+  geom_crossbar(aes(x=party,
+                    y=propvote,
+                    ymin=lb,
+                    ymax=ub,
+                    fill=party,
+                    color=party),
+                width=0.7,
+                alpha=0.5,
+                linetype=3,
+                fatten=0) +
+  geom_text(size=3,
+            aes(party,
+                label=round(ub, digits=0),
+                y=ub),
+            vjust=-.5) +
+  geom_text(size=3,
+            aes(party, 
+                label=round(lb, digits=0),
+                y=lb),
+            vjust=1.5) +
+  scale_fill_manual(values=party_color_alpha) +
+  scale_color_manual(values=party_color) +
+  scale_y_continuous(limits=c(0, 30),
+                     labels=c("0", "10", "20", "30")) +
+  theme_minimal() +
+  theme(legend.position="none",
+        panel.grid.minor.x=element_blank(),
+        panel.grid.major.x=element_blank(),
+        panel.grid.minor.y=element_blank(),
+        plot.background=element_rect(fill="white", 
+                                     colour="white"),
+        plot.margin=margin(0.5, 0.5, 0, 0.5, "cm"),
+        axis.title.y=element_text(margin=margin(0, 0.5, 0, 0, "cm"),
+                                  face="italic"),
+        text=element_text(face="bold")) +
+  labs(x="", 
+       y="Percentatge de vot (IC95%)")
+
+ggsave(file.path(IMG_FOLDER, "figevots.png"), pq, 
+       units="in", width=8, height=8, dpi=300)

@@ -40,3 +40,71 @@ simulated_seats <- simulated_seats |>
 
 ## Save data
 saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats.RDS"))
+
+## ---------------------------------------- 
+## Plot the results
+
+## Prettify names
+simulated_seats$party <- recode_factor(simulated_seats$party,
+                                       "PSCPSOE"="PSC",
+                                       "En.Comu.Podem"="ECP",
+                                       "Junts.per.Catalunya"="Junts")
+
+## Sort levels by results
+sorted_levels <- simulated_seats$party[order(simulated_seats$hi95,
+                                             decreasing=TRUE)]
+simulated_seats$party <- factor(simulated_seats$party,
+                                levels=sorted_levels)
+
+## Define party colors
+party_color <- unlist(lapply(COLORS, \(x) x[1]))
+party_color_alpha  <- unlist(lapply(COLORS, \(x) x[2]))
+
+party_color <- party_color[levels(simulated_seats$party)]
+party_color_alpha <- party_color_alpha[levels(simulated_seats$party)]
+
+## Report plot
+p <- ggplot(simulated_seats,
+            aes(party, median, fill=party))
+
+pq <- p +
+  geom_col(width=0.7, show.legend=FALSE) +
+  geom_hline(aes(yintercept = 0)) +
+  geom_crossbar(aes(x=party,
+                    y=median,
+                    ymin=lo05,
+                    ymax=hi95,
+                    fill=party,
+                    color=party),
+                width=0.7,
+                alpha=0.5,
+                linetype=3,
+                fatten=0) +
+  geom_text(aes(party,
+                label=hi95,
+                y=hi95),
+            vjust=-.5) +
+  geom_text(aes(party,
+                label=lo05,
+                y=lo05),
+            vjust=1.5) +
+  scale_fill_manual(values=party_color) +
+  scale_color_manual(values=party_color_alpha) + 
+  scale_y_continuous(limits=c(0, 42),
+                     labels=c("0", "10", "20", "30", "40")) +
+  theme_minimal() +
+  theme(legend.position="none",
+        panel.grid.minor.x=element_blank(),
+        panel.grid.major.x=element_blank(),
+        panel.grid.minor.y=element_blank(),
+        plot.background=element_rect(fill="white", 
+                                     colour="white"),
+        plot.margin=margin(0.5, 0.5, 0, 0.5, "cm"),
+        axis.title.y=element_text(margin=margin(0, 0.5, 0, 0, "cm"),
+                                    face="italic"),
+        text=element_text(face="bold")) +
+  labs(x="", 
+       y="Escons (Percentils 5 i 95 de simulacions)")
+
+ggsave(file.path(IMG_FOLDER, "figescons.png"), pq, 
+       units="in", width=8, height=8, dpi=300)

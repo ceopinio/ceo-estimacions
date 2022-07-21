@@ -14,7 +14,7 @@ library(ggplot2); theme_set(theme_bw())
 library(escons)
 
 ## ---------------------------------------- 
-## Read in data and configuratio
+## Read in data and configuration
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))

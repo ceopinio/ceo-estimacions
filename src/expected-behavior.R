@@ -248,7 +248,12 @@ probs <- seq(0, 1, by=0.005)
 ths <- thresholder(fit_abstention_cv, 
                    threshold=probs, ## Calculated for will vote
                    final=TRUE,
-                   statistics="all")
+                   statistics=c("Sensitivity",
+                                "Specificity",
+                                "Accuracy",
+                                "Kappa",
+                                "J",
+                                "Dist"))
 
 ## Threshold with max TPR and min FPR
 prob <- ths[which.min(ths$Dist), "prob_threshold"]

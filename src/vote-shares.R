@@ -10,6 +10,7 @@
 
 library(yaml)
 library(tidyr)
+library(dplyr)
 library(ggplot2); theme_set(theme_bw())
 library(escons)
 
@@ -28,7 +29,7 @@ p_voting <- readRDS(file.path(DTA_FOLDER, "predicted-voting.RDS"))
 thr_voting <- readRDS(file.path(DTA_FOLDER, "thr-predicted-voting.RDS"))
 
 ## Join all results
-bop <- merge(bop, recall_weights, by="id") 
+bop <- merge(bop, recall_weights, by="id")
 bop <- merge(bop, p_partychoice, by="id")
 bop <- merge(bop, p_voting, by="id") ## Probability of voting
 

@@ -106,15 +106,20 @@ for (i in seq_along(last_prob_pabstainers)) {
 }
 
 ## Declared as abstainers
-dabstainers <- rep(list(which(bop$abstention_twofactor == "Will.not.vote")), length(turnout))
-abstainers <- mapply(function(x, y) unique(c(x, y)), x=pabstainers, y=dabstainers)
+dabstainers <- rep(list(which(bop$abstention_twofactor == "Will.not.vote")),
+                   length(turnout))
+abstainers <- mapply(function(x, y) unique(c(x, y)),
+                     x=pabstainers,
+                     y=dabstainers)
 
 for (i in seq_along(turnout)) vote[[i]][abstainers[[i]]] <- "No.votaria"
 
 sim <- as.data.frame(sapply(vote,
-                            \(x) prop.table(xtabs(bop$weight ~ x, subset=x != "No.votaria"))))
+                            \(x) prop.table(xtabs(bop$weight ~ x,
+                                                  subset=x != "No.votaria"))))
 eturnout <- 1 - sapply(vote,
-                       \(x) prop.table(xtabs(weight ~ x == "No.votaria", data=bop))["TRUE"]) ## Actual turnout
+                       \(x) prop.table(xtabs(weight ~ x == "No.votaria",
+                                             data=bop))["TRUE"]) ## Actual turnout
 
 names(sim) <- paste0("p", turnout*100)
 sim$party <- rownames(sim)

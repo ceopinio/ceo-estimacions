@@ -232,3 +232,23 @@ pq <- p + geom_col(width=0.7,
 
 ggsave(file.path(IMG_FOLDER, "figevots.png"), pq,
        units="in", width=8, height=8, dpi=300)
+
+
+## ---------------------------------------- 
+## Transference matrix
+
+levels(bop$recall)[levels(bop$recall) == "No.ho.sap"] <- NA
+
+tmatrix <- prop.table(xtabs(~ intention + recall, data=bop), 2)*100
+transference_matrix <- as.data.frame(tmatrix)
+
+p <- ggplot(transference_matrix, aes(intention, recall, fill=Freq))
+pq <- p +
+  geom_tile() +
+  geom_text(aes(label=round(Freq, 1))) +
+  scale_fill_gradient(low="white", high="#009194") +
+  labs(title="Transference matrix",
+       x="Intention",
+       y="Recall") +
+  theme(axis.text.x=element_text(angle=10, vjust=1, hjust=1))
+ggsave(file.path(IMG_FOLDER, "transference_matrix.pdf"), pq)

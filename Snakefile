@@ -47,6 +47,7 @@ rule data_cleaning:
 rule past_behavior:
     input:
         join(RAW_DTA_FOLDER, "results-2021.csv"),
+        join(RAW_DTA_FOLDER, "llengua.csv"),        
         join(DTA_FOLDER, "clean-bop.RDS"),
         cmd=join(SRC_FOLDER, "past-behavior.R")
     output:

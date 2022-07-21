@@ -208,7 +208,7 @@ pq <- p + geom_col(width=0.7,
                 y=ub),
             vjust=-.5) +
   geom_text(size=3,
-            aes(party, 
+            aes(party,
                 label=round(lb, digits=0),
                 y=lb),
             vjust=1.5) +
@@ -221,14 +221,14 @@ pq <- p + geom_col(width=0.7,
         panel.grid.minor.x=element_blank(),
         panel.grid.major.x=element_blank(),
         panel.grid.minor.y=element_blank(),
-        plot.background=element_rect(fill="white", 
+        plot.background=element_rect(fill="white",
                                      colour="white"),
         plot.margin=margin(0.5, 0.5, 0, 0.5, "cm"),
         axis.title.y=element_text(margin=margin(0, 0.5, 0, 0, "cm"),
                                   face="italic"),
         text=element_text(face="bold")) +
-  labs(x="", 
+  labs(x="",
        y="Percentatge de vot (IC95%)")
 
-ggsave(file.path(IMG_FOLDER, "figevots.png"), pq, 
+ggsave(file.path(IMG_FOLDER, "figevots.png"), pq,
        units="in", width=8, height=8, dpi=300)

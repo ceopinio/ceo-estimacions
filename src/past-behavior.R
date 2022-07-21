@@ -22,6 +22,7 @@ list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2021.csv"))
+llengua_primera <- read.csv(file.path(RAW_DTA_FOLDER, "llengua.csv"))
 
 ## ---------------------------------------- 
 ## Cluster configuration
@@ -47,8 +48,14 @@ results <- rbind(results, list("No.va.votar", No.va.votar))
 results <- subset(results, party != "Censo")
 
 past_results <- data.frame("p_recall"=results$party,
-                           "Freq"=results$votes/sum(results$votes),
+                           "Freq"=results$votes/sum(results$votes)*nrow(bop),
                            row.names=NULL)
+
+## ---------------------------------------- 
+## Distribution of language use
+
+pop_llengua <- data.frame("llengua_primera"=llengua_primera$code,
+                          "Freq"=llengua_primera$Freq*nrow(bop))
 
 ## ---------------------------------------- 
 ## Recode past behavior 
@@ -153,15 +160,21 @@ xgb.save(m, fname=file.path(MDL_FOLDER, "model-recall.xgb"))
 saveRDS(fit_recall, file.path(MDL_FOLDER, "model-recall.RDS"))
 
 ## ---------------------------------------- 
-## Poststratify to past electoral results
+## Poststratify to language and past electoral results
+
+## Impute missings to Other
+bop$llengua_primera[is.na(bop$llengua_primera)] <-
+  "Altres llengües o altres combinacions"
+bop$llengua_primera <- as.numeric(bop$llengua_primera)
 
 svybop <- svydesign(ids= ~1, weights= ~1, data=bop)
 
-unweighted <- svytable(~ p_recall, svybop, Ntotal=100)
-
-svybop <- postStratify(svybop, ~p_recall, past_results)
+svybop <- rake(design=svybop,
+               sample.margins=list(~p_recall, ~llengua_primera),
+               population.margins=list(past_results, pop_llengua))
 
 (svytable(~ p_recall, svybop, Ntotal=100))
+(svytable(~ llengua_primera, svybop, Ntotal=100))
 
 ## ---------------------------------------- 
 ## Save weights

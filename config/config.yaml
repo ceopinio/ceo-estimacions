@@ -31,3 +31,12 @@ COLORS:
   Cs:
     - "#A94A0D"
     - "#EB6109"
+PRETTY_PARTY_NAMES:
+  "PSCPSOE": "PSC"
+  "ERC": "ERC"
+  "Cs": "Cs"
+  "CUP": "CUP"
+  "En.Comu.Podem": "ECP"
+  "Junts.per.Catalunya": "Junts"
+  "PP": "PP"
+  "Vox": "Vox"

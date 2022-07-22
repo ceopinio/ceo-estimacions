@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 
 ## Estimates vote shares using predictions of behavior at the
-
 ## individual level (party choice and abstention). Party choice
 ## predictions are only applied to individuals who do not report
 ## intended behavior. Absention predictions are applied based on the
@@ -10,9 +9,8 @@
 
 library(yaml)
 library(tidyr)
-library(dplyr)
 library(ggplot2); theme_set(theme_bw())
-library(escons)
+
 
 ## ---------------------------------------- 
 ## Read in data and configuration
@@ -159,103 +157,3 @@ pq <- p + geom_line() +
  
 ggsave(file.path(IMG_FOLDER, "simulation-voting.pdf"), pq)
  
-## ---------------------------------------- 
-## Plot the results
-
-## Prettify names
-estimates$party <- recode_factor(estimates$party,
-                                 "PSCPSOE"="PSC",
-                                 "En.Comu.Podem"="ECP",
-                                 "Junts.per.Catalunya"="Junts")
-
-## Normalize results to candidacies and calculate CI
-estimates <- estimates[!estimates$party %in% c("Altres", "No.votaria"),
-                       c("party", "weighted")]
-estimates$propvote <- estimates$weighted/sum(estimates$weighted) 
-
-moe <- moe(estimates$propvote, nrow(bop), .95)
-estimates$lb <- estimates$propvote - moe
-estimates$ub <- estimates$propvote + moe
-
-estimates <- estimates |>
-  mutate(propvote=propvote*100,
-         ub=ub*100,
-         lb=lb*100)
-
-## Sort levels by results
-sorted_levels <- estimates$party[order(estimates$propvote, decreasing=TRUE)]
-estimates$party <- factor(estimates$party, levels=sorted_levels)
-
-## Define party colors
-party_color <- unlist(lapply(COLORS, \(x) x[1]))
-party_color_alpha  <- unlist(lapply(COLORS, \(x) x[2]))
-
-party_color <- party_color[levels(estimates$party)]
-party_color_alpha <- party_color_alpha[levels(estimates$party)]
-
-## Report plot
-p <- ggplot(estimates,
-            aes(party, propvote, fill=party))
-pq <- p + geom_col(width=0.7,
-           show.legend=FALSE) +
-  geom_hline(aes(yintercept=0)) +
-  geom_crossbar(aes(x=party,
-                    y=propvote,
-                    ymin=lb,
-                    ymax=ub,
-                    fill=party,
-                    color=party),
-                width=0.7,
-                alpha=0.5,
-                linetype=3,
-                fatten=0) +
-  geom_text(size=3,
-            aes(party,
-                label=round(ub, digits=0),
-                y=ub),
-            vjust=-.5) +
-  geom_text(size=3,
-            aes(party,
-                label=round(lb, digits=0),
-                y=lb),
-            vjust=1.5) +
-  scale_fill_manual(values=party_color_alpha) +
-  scale_color_manual(values=party_color) +
-  scale_y_continuous(limits=c(0, 30),
-                     labels=c("0", "10", "20", "30")) +
-  theme_minimal() +
-  theme(legend.position="none",
-        panel.grid.minor.x=element_blank(),
-        panel.grid.major.x=element_blank(),
-        panel.grid.minor.y=element_blank(),
-        plot.background=element_rect(fill="white",
-                                     colour="white"),
-        plot.margin=margin(0.5, 0.5, 0, 0.5, "cm"),
-        axis.title.y=element_text(margin=margin(0, 0.5, 0, 0, "cm"),
-                                  face="italic"),
-        text=element_text(face="bold")) +
-  labs(x="",
-       y="Percentatge de vot (IC95%)")
-
-ggsave(file.path(IMG_FOLDER, "figevots.png"), pq,
-       units="in", width=8, height=8, dpi=300)
-
-
-## ---------------------------------------- 
-## Transference matrix
-
-levels(bop$recall)[levels(bop$recall) == "No.ho.sap"] <- NA
-
-tmatrix <- prop.table(xtabs(~ intention + recall, data=bop), 2)*100
-transference_matrix <- as.data.frame(tmatrix)
-
-p <- ggplot(transference_matrix, aes(intention, recall, fill=Freq))
-pq <- p +
-  geom_tile() +
-  geom_text(aes(label=round(Freq, 1))) +
-  scale_fill_gradient(low="white", high="#009194") +
-  labs(title="Transference matrix",
-       x="Intention",
-       y="Recall") +
-  theme(axis.text.x=element_text(angle=10, vjust=1, hjust=1))
-ggsave(file.path(IMG_FOLDER, "transference_matrix.pdf"), pq)

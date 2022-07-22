@@ -74,8 +74,13 @@ environment for ease of use.
   [package `escons`](https://github.com/ceopinio/escons)
   which needs to be installed separately.
   
-The `Snakefile` will ensure that the scripts are executed in the
-correct order. 
+7. `report-figures.R` prepares the final figures included in the
+   report. Note: This file is not executed via the `Snakefile` and
+   will likely contain dependencies different from those listed in the
+   `renv.lock`.
+  
+The `Snakefile` will ensure that the scripts performing data analysis
+are executed in the correct order.
 
 ## Execution
 

@@ -159,6 +159,12 @@ m <- xgb.Booster.complete(fit_recall$finalModel, saveraw=FALSE)
 xgb.save(m, fname=file.path(MDL_FOLDER, "model-recall.xgb"))
 saveRDS(fit_recall, file.path(MDL_FOLDER, "model-recall.RDS"))
 
+## Save predictions
+saveRDS(data.frame("id"=bop$id,
+                   "p_recall"=bop$p_recall),
+        file.path(DTA_FOLDER, "predicted-recall.RDS"))
+
+
 ## ---------------------------------------- 
 ## Poststratify to language and past electoral results
 

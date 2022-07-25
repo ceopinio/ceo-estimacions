@@ -52,8 +52,9 @@ rule past_behavior:
         cmd=join(SRC_FOLDER, "past-behavior.R")
     output:
         join(DTA_FOLDER, "weight.RDS"),
+        join(DTA_FOLDER, "predicted-recall.RDS"),        
         join(MDL_FOLDER, "model-recall.RDS"),
-        join(MDL_FOLDER, "model-recall.xgb")        
+        join(MDL_FOLDER, "model-recall.xgb")
     shell:
         "Rscript {input.cmd}"
             

@@ -34,7 +34,7 @@ prettify_party_names <- function(x) {
   }
   
   for (i in levels(x)) {
-    if (i %in% PRETTY_PARTY_NAMES) {
+    if (i %in% names(PRETTY_PARTY_NAMES)) {
       levels(x)[which(levels(x) == i)] <- as.character(PRETTY_PARTY_NAMES[i])
     }
   }

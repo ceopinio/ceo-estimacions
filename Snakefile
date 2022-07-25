@@ -7,7 +7,7 @@ SRC_FOLDER = config["SRC_FOLDER"]
 DTA_FOLDER = config["DTA_FOLDER"]
 RAW_DTA_FOLDER = config["RAW_DTA_FOLDER"]
 MDL_FOLDER = config["MDL_FOLDER"]
-RAW_DTA_FILE = "BOP222.sav"
+RAW_DTA_FILE = "Microdades anonimitzades 1031.sav"
 
 models=["model-partychoice", "model-abstention"]
 exts=["RDS", "xgb"]

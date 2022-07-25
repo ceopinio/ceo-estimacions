@@ -29,13 +29,13 @@ bop <- bop[sample(nrow(bop)),]
 ## Data cleaning
 
 bop <- bop |>
-  mutate(intention=case_when(INT_PARLAMENT_VOT_R %in% ## Vote intention
-                               c(1, 3, 4, 6, 10, 18, 21, 23, 80) ~ INT_PARLAMENT_VOT_R,
+  mutate(intention=case_when(INT_CONGRES_VOT_R %in% ## Vote intention
+                               c(1, 3, 4, 6, 10, 18, 21, 23, 80) ~ INT_CONGRES_VOT_R,
                              TRUE ~ NA_real_),
-         recall=case_when(REC_PARLAMENT_VOT_R < 93 ~ REC_PARLAMENT_VOT_R,
-                          REC_PARLAMENT_VOT_R %in% c(93, 94) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
-                          REC_PARLAMENT_VOT_R > 96 ~ 98), ## Vote recall
-         abstention=case_when(INT_PARLAMENT_PART %in% c(1, 2, 4, 5) ~ INT_PARLAMENT_PART,
+         recall=case_when(REC_CONGRES_VOT_R < 93 ~ REC_CONGRES_VOT_R,
+                          REC_CONGRES_VOT_R %in% c(93, 94) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
+                          REC_CONGRES_VOT_R > 96 ~ 98), ## Vote recall
+         abstention=case_when(INT_CONGRES_PART %in% c(1, 2, 4, 5) ~ INT_CONGRES_PART,
                               TRUE ~ NA_real_), ## Stated abstention
          simpatia=case_when(SIMPATIA_PARTIT_AGRUPADA_R <= 95 ~ SIMPATIA_PARTIT_AGRUPADA_R,
                             SIMPATIA_PARTIT_AGRUPADA_R > 95 ~ NA_real_), ## Stated proximity

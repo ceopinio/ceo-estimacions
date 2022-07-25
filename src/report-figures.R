@@ -164,8 +164,8 @@ pq <- p +
             vjust=1.5) +
   scale_fill_manual(values=eseats_party_color) +
   scale_color_manual(values=eseats_party_color_alpha) +
-  scale_y_continuous(limits=c(0, 42),
-                     labels=c("0", "10", "20", "30", "40")) +
+  scale_y_continuous(limits=c(0, 15),
+                     labels=c("0", "5", "10", "15")) +
   theme_minimal() +
   theme(legend.position="none",
         panel.grid.minor.x=element_blank(),

@@ -14,7 +14,7 @@ library(stringi)
 ## Read in data and configuration
 
 list2env(read_yaml("config/config.yaml"), envir=globalenv())
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "BOP222.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1031.sav"))
 
 ## ---------------------------------------- 
 ## Assign ID to data
@@ -121,7 +121,7 @@ bop <- bop |>
          "LLENGUA_PRIMERA",
          "SIT_ECO_CAT",
          "SIT_ECO_CAT_RETROSPECTIVA",
-         "SIT_ECO_CAT_PROSPECTIVA",                                    
+         "SIT_ECO_CAT_PROSPECTIVA",                          
          "SIT_POL_CAT",
          "SIT_ECO_ESP",
          "SIT_POL_ESP",

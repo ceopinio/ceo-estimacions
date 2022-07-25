@@ -21,7 +21,7 @@ bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 p_intention <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
 
-past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2021.csv"))
+past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2019.csv"))
 
 ## Merge data
 bop <- merge(bop, p_intention, by = "id")

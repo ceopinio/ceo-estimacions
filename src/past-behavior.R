@@ -51,6 +51,10 @@ past_results <- data.frame("p_recall"=results$party,
                            "Freq"=results$votes/sum(results$votes)*nrow(bop),
                            row.names=NULL)
 
+past_results$p_recall <- (gsub("Catalunya.en.Comu.Podem", 
+                               "En.Comu.Podem", 
+                               past_results$p_recall))
+
 ## ---------------------------------------- 
 ## Distribution of language use
 

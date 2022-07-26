@@ -21,7 +21,7 @@ library(doParallel)
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
-past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2019.csv"))
+past_results <- read.csv2(file.path(RAW_DTA_FOLDER, "results-2019.csv"))
 llengua_primera <- read.csv(file.path(RAW_DTA_FOLDER, "llengua.csv"))
 
 ## ---------------------------------------- 

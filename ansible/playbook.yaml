@@ -2,7 +2,7 @@
   tasks:    
     - name: Clone the repository
       git:
-        repo: git@github.com:griverorz/ceo-barometer-src.git
+        repo: git@github.com:ceopinio/ceo-estimacions.git
         version: main
         dest: /opt/ceobarometer
         force: yes

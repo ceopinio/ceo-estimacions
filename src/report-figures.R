@@ -184,40 +184,130 @@ ggsave(file.path(IMG_FOLDER, "figescons.png"), pq,
 
 
 ## ---------------------------------------- 
-## Transference matrix
+
+## Heatmapf of transference
+
+hmap_p <- p_transfer %>%
+  group_by(p_intention, p_recall, .drop = FALSE) %>%
+  summarize(n=length(p_recall)) %>%
+  ungroup() %>%
+  complete(p_recall,
+           p_intention,
+           fill=list(n=0, freq=0)) %>%
+  group_by(p_recall) %>%
+  mutate(proportion=(n / sum(n))*100) %>%
+  mutate(proportion=round_percent(proportion, decimals = 0)) 
+
+hmap_p <- hmap_p%>%
+  mutate(p_intention=case_when(p_intention == "PSCPSOE" ~ "PSC",
+                               p_intention == "En.Comu.Podem" ~ "ECP",
+                               p_intention == "Junts.per.Catalunya" ~ "Junts",
+                               p_intention == "No.votaria" ~ "BAI",
+                               p_intention == "PP" ~ "PP",
+                               p_intention == "ERC" ~ "ERC",
+                               p_intention == "Cs" ~ "Cs",
+                               p_intention == "CUP" ~ "CUP",
+                               p_intention == "Vox" ~ "Vox",
+                               p_intention == "Altres" ~ "Altres"),
+         p_recall=case_when(p_recall == "PSCPSOE" ~ "PSC",
+                            p_recall == "PP" ~ "PP",
+                            p_recall == "ERC" ~ "ERC",
+                            p_recall == "Cs" ~ "Cs",
+                            p_recall == "CUP" ~ "CUP",
+                            p_recall == "Vox" ~ "Vox",
+                            p_recall == "En.Comu.Podem" ~ "ECP",
+                            p_recall == "Junts.per.Catalunya" ~ "Junts",
+                            p_recall == "Altres.partits" ~ "Altres",
+                            p_recall == "No.va.votar" ~ "BAI"))
+
+
+## Order of parties in plot
+partits_level <- c("PSC",
+                   "ERC",
+                   "Junts",
+                   "Vox",
+                   "CUP",
+                   "ECP",
+                   "Cs",
+                   "PP",
+                   "Altres",
+                   "BAI")
+
+## Plot heatmap
+
+p <- ggplot(hmap_p)
+
+pq <- p +
+  geom_tile(aes(fct_relevel(p_recall, partits_level),
+                fct_relevel(p_intention, partits_level),
+                fill=p_intention,
+                alpha=proportion),
+            color="white",
+            size=1) +
+  geom_text(aes(p_intention,
+                p_recall,
+                label=proportion),
+            color="white",
+            size=5,
+            fontface="bold") +
+  scale_y_discrete(limits=rev) +
+  scale_x_discrete(position="top") +
+  scale_fill_manual(values=as.vector(c("#AEAEAE", #Altres
+                                       "#AEAEAE", #BAI
+                                       party_color_alpha["Cs"],
+                                       party_color_alpha["CUP"],
+                                       party_color_alpha["ECP"],
+                                       party_color_alpha["ERC"],
+                                       party_color_alpha["Junts"],
+                                       party_color_alpha["PP"],
+                                       party_color_alpha["PSC"],
+                                       party_color_alpha["Vox"]))) +
+  scale_alpha_continuous(limits=c(0, 15),
+                         range=c(0.3, 1)) +
+  theme_minimal() +
+  theme(legend.position="none",
+        panel.grid.minor.x=element_blank(),
+        panel.grid.major.x=element_blank(),
+        panel.grid.minor.y=element_blank(),
+        panel.grid.major.y=element_blank(),
+        plot.background=element_rect(fill="white",
+                                     colour="white"),
+        plot.margin=margin(0, 0.5, 0.5, 0, "cm")) +
+  labs(x="Intenció 2022 (Estimació)", y="Record 2021")
+pq
+ggsave(file.path(IMG_FOLDER, "heatmap.png"), pq,
+       units="in", width=8, height=8, dpi=300)
+
+
+## Transference matrix sankey
 
 ## Data cleaning
 
-sankey <- bop %>% 
-  select(vote=REC_PARLAMENT_VOT_CENS_R,
-         intention=INT_PARLAMENT_VOT_R) %>%
-  mutate(vote=replace(vote,
-                      vote >=93, 25),
-         intention=replace(intention,
-                           intention >=93, 25)) %>%
-  mutate(vote=case_when(vote == 1 ~ "PP",
-                          vote == 3 ~ "ERC",
-                          vote == 4 ~ "PSC",
-                          vote == 6 ~ "Cs",
-                          vote == 10 ~ "CUP",
-                          vote == 21 ~ "Junts",
-                          vote == 22 ~ "CEC",
-                          vote == 23 ~ "Vox",
-                          vote == 80 ~ "Altres",
-                          vote == 25 ~ "BAI"),
-         intention=case_when(intention == 1 ~ "PP",
-                             intention == 3 ~ "ERC",
-                             intention == 4 ~ "PSC",
-                             intention == 6 ~ "Cs",
-                             intention == 10 ~ "CUP",
-                             intention == 21 ~ "Junts",
-                             intention == 18 ~ "ECP",
-                             intention == 23 ~ "Vox",
-                             intention == 80 ~ "Altres",
-                             intention == 25 ~ "BAI"))
+sankey_p <- p_transfer %>%
+  select(c(p_recall, p_intention)) %>%
+  mutate(p_intention=case_when(p_intention == "PSCPSOE" ~ "PSC",
+                               p_intention == "En.Comu.Podem" ~ "ECP",
+                               p_intention == "Junts.per.Catalunya" ~ "Junts",
+                               p_intention == "No.votaria" ~ "BAI",
+                               p_intention == "PP" ~ "PP",
+                               p_intention == "ERC" ~ "ERC",
+                               p_intention == "Cs" ~ "Cs",
+                               p_intention == "CUP" ~ "CUP",
+                               p_intention == "Vox" ~ "Vox",
+                               p_intention == "Altres" ~ "Altres"),
+         p_recall=case_when(p_recall == "PSCPSOE" ~ "PSC",
+                            p_recall == "PP" ~ "PP",
+                            p_recall == "ERC" ~ "ERC",
+                            p_recall == "Cs" ~ "Cs",
+                            p_recall == "CUP" ~ "CUP",
+                            p_recall == "Vox" ~ "Vox",
+                            p_recall == "En.Comu.Podem" ~ "ECP",
+                            p_recall == "Junts.per.Catalunya" ~ "Junts",
+                            p_recall == "Altres.partits" ~ "Altres",
+                            p_recall == "No.va.votar" ~ "BAI"))
 
-sankeydf <- sankey %>% 
-  make_long(vote, intention)
+sankeydf <- sankey %>%
+  ggsankey::make_long(vote, intention)
 
 sankeydf$node <- factor(sankeydf$node,
                         levels=c("BAI", #Change levels by vote %
@@ -275,100 +365,6 @@ pq <- p + geom_sankey(flow.alpha=.4,
         plot.background=element_rect(fill="white",
                                      colour="white"))
 
+pq
 ggsave(file.path(IMG_FOLDER, "sankey.png"), pq,
-       units="in", width=8, height=8, dpi=300)
-
-
-## ---------------------------------------- 
-## Heatmapf of transference
-
-## Order of parties in plot
-partits_level <- c("PSC",
-                   "ERC",
-                   "Junts",
-                   "Vox",
-                   "CUP",
-                   "ECP",
-                   "Cs",
-                   "PPC",
-                   "Altres",
-                   "BAI")
-
-## Data cleaning
-hmap <- bop %>% 
-  select(int_parlament=INT_PARLAMENT_VOT_R,
-         rec_parlament=REC_PARLAMENT_VOT_CENS_R) %>% 
-  mutate(int_parlament=case_when(int_parlament == 1 ~ "PPC",
-                                 int_parlament == 3 ~ "ERC",
-                                 int_parlament == 4 ~ "PSC",
-                                 int_parlament == 6 ~ "Cs",
-                                 int_parlament == 10 ~ "CUP",
-                                 int_parlament == 18 ~ "ECP",
-                                 int_parlament == 21 ~ "Junts",
-                                 int_parlament == 23 ~ "Vox",
-                                 int_parlament == 80 ~ "Altres",
-                                 int_parlament >= 93 ~ "BAI"),
-         rec_parlament=case_when(rec_parlament == 1 ~ "PPC",
-                                 rec_parlament == 3 ~ "ERC",
-                                 rec_parlament == 4 ~ "PSC",
-                                 rec_parlament == 6 ~ "Cs",
-                                 rec_parlament == 10 ~ "CUP",
-                                 rec_parlament == 21 ~ "Junts",
-                                 rec_parlament == 22 ~ "ECP",
-                                 rec_parlament == 23 ~ "Vox",
-                                 rec_parlament == 80 ~ "Altres",
-                                 rec_parlament >= 93 ~ "BAI")) %>%
-  group_by(int_parlament, rec_parlament, .drop = FALSE) %>%
-  summarize(n=length(int_parlament)) %>%
-  ungroup() %>%
-  complete(int_parlament,
-           rec_parlament,
-           fill=list(n=0, freq=0)) %>%
-  group_by(int_parlament) %>%
-  mutate(proportion=(n / sum(n))*100) %>%
-  mutate(proportion=round_percent(proportion, decimals = 0))
-
-## Plot heatmap
-
-p <- ggplot(hmap)
-  
-pq <- p +
-  geom_tile(aes(fct_relevel(rec_parlament, partits_level),
-                fct_relevel(int_parlament, partits_level),
-                fill=int_parlament,
-                alpha=proportion),
-            color="white",
-            size=1) +
-  geom_text(aes(rec_parlament,
-                int_parlament,
-                label=proportion),
-            color="white",
-            size=5,
-            fontface="bold") +
-  scale_y_discrete(limits=rev) +
-  scale_x_discrete(position="top") +
-  scale_fill_manual(values=as.vector(c("#AEAEAE", #Altres
-                                       "#AEAEAE", #BAI
-                                       party_color_alpha["Cs"],
-                                       party_color_alpha["CUP"],
-                                       party_color_alpha["ECP"],
-                                       party_color_alpha["ERC"],
-                                       party_color_alpha["Junts"],
-                                       party_color_alpha["PP"],
-                                       party_color_alpha["PSC"],
-                                       party_color_alpha["Vox"]))) +
-  scale_alpha_continuous(limits=c(0, 15),
-                         range=c(0.3, 1)) +
-  theme_minimal() +
-  theme(legend.position="none",
-        panel.grid.minor.x=element_blank(),
-        panel.grid.major.x=element_blank(),
-        panel.grid.minor.y=element_blank(),
-        panel.grid.major.y=element_blank(),
-        plot.background=element_rect(fill="white",
-                                     colour="white"),
-        plot.margin=margin(0, 0.5, 0.5, 0, "cm")) +
-  labs(x="", y="")
-
-ggsave(file.path(IMG_FOLDER, "heatmap.png"), pq,
        units="in", width=8, height=8, dpi=300)

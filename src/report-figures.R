@@ -17,7 +17,7 @@ library(MESS)
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "BOP222.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1031.sav"))
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))
 
@@ -49,9 +49,8 @@ prettify_party_names <- function(x) {
 ## Prettify names
 evotes$party <- prettify_party_names(evotes$party)
 
-## Normalize results to candidacies and calculate CI
-evotes <- evotes[!evotes$party %in% c("Altres", "No.votaria"),
-                 c("party", "weighted")]
+## Calculate CI
+evotes <- subset(evotes, party != c("No.votaria"))
 
 evotes$propvote <- evotes$weighted/sum(evotes$weighted) 
 
@@ -63,6 +62,9 @@ evotes <- evotes |>
   mutate(propvote=propvote * 100,
          ub=ub * 100,
          lb=lb * 100)
+
+evotes <- evotes[!evotes$party %in% c("Altres"),
+                 c("party", "weighted", "propvote", "lb", "ub")]
 
 ## Sort levels by results
 sorted_levels <- evotes$party[order(evotes$propvote, decreasing=TRUE)]

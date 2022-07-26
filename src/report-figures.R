@@ -20,6 +20,11 @@ list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- read_sav(file.path(RAW_DTA_FOLDER, "BOP222.sav"))
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))
+p_recall <- readRDS(file.path(DTA_FOLDER, "predicted-recall.RDS"))
+p_behavior <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
+p_voting <- readRDS(file.path(DTA_FOLDER, "predicted-partychoice.RDS"))
+p_transfer <- merge(p_recall, p_behavior, by="id")
+p_transfer <- merge(p_transfer, p_voting, by="id")
 
 ## Party colors
 

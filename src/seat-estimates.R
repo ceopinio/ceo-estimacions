@@ -26,7 +26,11 @@ district_share <- district_share[rownames(district_share) != "Altres", ]
 ## Simulate share distribution
 simulated_seats <- simulate(district_share,
                             moe(district_share, N, 0.95),
-                            names=row.names(district_share))
+                            names=row.names(district_share),
+                            dsize = c(Barcelona = 32, 
+                                      Girona = 6, 
+                                      Tarragona = 6, 
+                                      Lleida = 4))
 
 simulated_seats <- as.data.frame(simulated_seats)
 saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats-simulation.RDS"))

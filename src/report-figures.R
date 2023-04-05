@@ -17,7 +17,7 @@ library(MESS)
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1031.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades revisades 1050.sav"))
 
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))
@@ -26,7 +26,7 @@ past_results <- read_csv2(file.path(RAW_DTA_FOLDER, "past_results_plots.csv"))
 past_seats <- past_results %>% select(party, past_seats = seats_2021)
 past_vote <- past_results %>% select(party, past_vote = vote_2021)
 
-p_recall <- readRDS(file.path(DTA_FOLDER, "p_recall.RDS"))
+p_recall <- readRDS(file.path(DTA_FOLDER, "predicted-recall.RDS"))
 p_behavior <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
 p_voting <- readRDS(file.path(DTA_FOLDER, "predicted-partychoice.RDS"))
 p_transfer <- merge(p_recall, p_behavior, by="id")
@@ -116,7 +116,7 @@ pq <- p + geom_col(width = 0.5,
            position = position_nudge(y = -0.3)) +
   geom_vline(aes(xintercept = 0)) +
   geom_text(aes(past_vote,
-                label = past_vote, 
+                label = round(past_vote, digits = 1), 
                 y = party),
             hjust = -.1,
             vjust = 1.6,
@@ -142,16 +142,16 @@ pq <- p + geom_col(width = 0.5,
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.major.y = element_blank(),
-        plot.background =  element_rect(fill = 'white', 
-                                        colour = 'white'),
         axis.title.x = element_text(margin = margin(0.5,0,0,0, "cm")),
         plot.margin = margin(0.5,0.5,0,0.5, "cm"),
         text = element_text(family = "Arial", color  = "black"),
         plot.title = element_text(margin = margin(0.25,0,0.25,0, "cm"),
                                   face = "bold", 
+                                  size = 10,
                                   color = "black"),
-        plot.subtitle = element_text(margin = margin(0,0,0.5,0, "cm"),
+        plot.subtitle = element_text(margin = margin(0,0,0.25,0, "cm"),
                                      color="#ACACAC",
+                                     size = 10,
                                      face = "italic"),
         plot.title.position = "plot",
         plot.caption.position = "plot") +
@@ -189,6 +189,8 @@ eseats$party <- factor(eseats$party,
 
 p <- ggplot(eseats,
             aes(median, party, fill=party))
+# ## Modificacio de l'ordre del gráfic per ordre d'escons
+new_order <- c("Ciudadanos", "Vox", "En Comú Podem", "CUP", "PP", "Junts per Catalunya", "ERC", "PSC")
 
 pq <- p +
   geom_col(aes(fill = party),
@@ -231,21 +233,22 @@ pq <- p +
             fontface = "bold") +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
-  scale_y_discrete(limits = rev) +
+  #scale_y_discrete(limits = rev) +
+  scale_y_discrete(limits = new_order) +
   scale_x_continuous(limits = c(0,44), expand = c(0, 0)) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.major.y = element_blank(),
-        plot.background =  element_rect(fill = 'white', 
-                                        colour = 'white'),
         axis.title.x = element_text(margin = margin(0.5,0,0,0, "cm")),
         plot.margin = margin(0.5,0.5,0,0.5, "cm"),
         text = element_text(family = "Arial", color  = "black"),
         plot.title = element_text(margin = margin(0.25,0,0.25,0, "cm"),
                                   face = "bold", 
+                                  size = 10,
                                   color = "black"),
-        plot.subtitle = element_text(margin = margin(0,0,0.5,0, "cm"),
+        plot.subtitle = element_text(margin = margin(0,0,0.25,0, "cm"),
                                      color="#ACACAC",
+                                     size = 10,
                                      face = "italic"),
         plot.title.position = "plot",
         plot.caption.position = "plot") +
@@ -281,7 +284,7 @@ hmap_p <- hmap_p%>%
                                p_intention == "No.votaria" ~ "BAI",
                                p_intention == "PP" ~ "PP",
                                p_intention == "ERC" ~ "ERC",
-                               p_intention == "Cs" ~ "Cs",
+                               p_intention == "Ciudadanos" ~ "Cs",
                                p_intention == "CUP" ~ "CUP",
                                p_intention == "Vox" ~ "Vox",
                                p_intention == "Altres" ~ "Altres"),
@@ -330,11 +333,11 @@ pq <- p +
   scale_x_discrete(position="top") +
   scale_fill_manual(values=as.vector(c("#AEAEAE", #Altres
                                        "#AEAEAE", #BAI
-                                       party_color_alpha["Cs"],
+                                       party_color_alpha["Ciudadanos"],
                                        party_color_alpha["CUP"],
-                                       party_color_alpha["ECP"],
+                                       party_color_alpha["En Comú Podem"],
                                        party_color_alpha["ERC"],
-                                       party_color_alpha["Junts"],
+                                       party_color_alpha["Junts per Catalunya"],
                                        party_color_alpha["PP"],
                                        party_color_alpha["PSC"],
                                        party_color_alpha["Vox"]))) +

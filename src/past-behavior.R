@@ -166,7 +166,7 @@ saveRDS(fit_recall, file.path(MDL_FOLDER, "model-recall.RDS"))
 ## Save predictions
 saveRDS(data.frame("id"=bop$id,
                    "p_recall"=bop$p_recall),
-        "predicted-recall.RDS")
+        file.path(DTA_FOLDER, "predicted-recall.RDS"))
 
 ## ---------------------------------------- 
 ## Poststratify to language and past electoral results

@@ -14,7 +14,7 @@ library(stringi)
 ## Read in data and configuration
 
 list2env(read_yaml("config/config.yaml"), envir=globalenv())
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1035.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1050.sav"))
 
 ## ---------------------------------------- 
 ## Assign ID to data
@@ -29,14 +29,14 @@ bop <- bop[sample(nrow(bop)),]
 ## Data cleaning
 
 bop <- bop |>
-  mutate(intention=case_when(INT_PARLAMENT_VOT_R %in% ## Vote intention
-                               c(1, 3, 4, 6, 10, 18, 21, 23, 80) ~ INT_PARLAMENT_VOT_R,
-                             TRUE ~ NA_real_),
-         recall=case_when(REC_PARLAMENT_VOT_R < 93 ~ REC_PARLAMENT_VOT_R, ## Vot ultimes eleccions
-                          REC_PARLAMENT_VOT_R %in% c(93, 94) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
-                          REC_PARLAMENT_VOT_R > 96 ~ 98), ## Vote recall
-         abstention=case_when(INT_PARLAMENT_PART %in% c(1, 2, 4, 5) ~ INT_PARLAMENT_PART,
-                              TRUE ~ NA_real_), ## Stated abstention
+  mutate(intention = case_when(INT_PARLAMENT_VOT_R %in% ## Vote intention
+                                 c(1, 3, 4, 6, 10, 18, 21, 23, 80) ~ INT_PARLAMENT_VOT_R,
+                               TRUE ~ NA_real_),
+         recall = case_when(REC_PARLAMENT_VOT_R < 93 ~ REC_PARLAMENT_VOT_R, ## Vot ultimes eleccions
+                            REC_PARLAMENT_VOT_R %in% c(93, 94) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
+                            REC_PARLAMENT_VOT_R > 96 ~ 98), ## Vote recall
+         abstention = case_when(INT_PARLAMENT_PART %in% c(1, 2, 4, 5) ~ INT_PARLAMENT_PART,
+                                TRUE ~ NA_real_), ## Stated abstention
          simpatia = case_when(SIMPATIA_PARTIT_R %in% c(1, 3, 4, 6, 10, 18, 21, 23, 80, 95) ~ SIMPATIA_PARTIT_R,
                               SIMPATIA_PARTIT_R %in% c(98, 99) ~ NA_real_,
                               TRUE ~ 80), ## Stated proximity
@@ -45,7 +45,8 @@ bop <- bop |>
                                               SIMPATIA_PARTIT_PROPER %in% c(98, 99) ~ NA_real_,
                                               TRUE ~ 80), ## No simpatia partit, quin més proximitat
          across(c("IDEOL_0_10", ## Extrema esquerra - extrema dreta
-                  "ESP_CAT_0_10", ## Maxim espanyolisme - maxim catalanisme
+                  "CAT_0_10", ## Mínim catalanisme - màxim catalanisme
+                  "ESP_0_10", ## Mínim espanyolisme - màxim espanyolisme
                   "RISCOS"), ~ if_else(.x >= 98,
                                        NA_real_,
                                        as.numeric(.x))), ## Spatial variables
@@ -62,7 +63,11 @@ bop <- bop |>
                   "SIT_POL_ESP",
                   "SATIS_DEMOCRACIA",
                   "INTERES_POL_PUBLICS",
-                  "INF_POL_MON_FREQ",
+                  "INF_POL_DIARI_FREQ",
+                  "INF_POL_RADIO_FREQ",                  
+                  "INF_POL_TV_FREQ",
+                  "INF_POL_XARXES_FREQ",
+                  "INF_POL_CONEGUTS_FREQ",
                   "PART_ELECCIONS"), ~ if_else(.x >= 98,
                                                NA_integer_,
                                                as.integer(.x))), ## Categorical variables
@@ -75,11 +80,6 @@ bop <- bop |>
                                               as.numeric(.x))), ## Valoracio liders polítics
          across(c("VAL_GOV_CAT", "VAL_GOV_ESP"),
                 ~ if_else( .x >= 98, NA_real_, as.numeric(.x))), ## Valoracio governs
-         across(c("CONFI_POL_CAT", "CONFI_POL_ESP"),
-                ~ if_else( .x >= 98, NA_real_, as.numeric(.x))), ## Confianca politics    
-         across(c("EFICACIA_EXT_1", "EFICACIA_EXT_2", "EFICACIA_INT_1", "EFICACIA_INT_2"),
-                ~ case_when( .x %in% c(1, 2) ~ .x,
-                         TRUE ~ NA_real_)),
          across(c("SIT_ECO_CAT", "SIT_POL_CAT", "SIT_ECO_ESP", "SIT_POL_ESP"),
                 ~ case_when(.x %in% c(1, 2) ~ 1,
                             .x == 3 ~ 0,
@@ -88,23 +88,23 @@ bop <- bop |>
          GENERE=case_when(GENERE %in% c(1, 2) ~ GENERE,
                           TRUE ~ NA_real_),
          RELACIONS_CAT_ESP = case_when( RELACIONS_CAT_ESP %in% c(1, 2, 3, 4) ~  as.numeric(RELACIONS_CAT_ESP),
-                                   TRUE ~ NA_real_),    
+                                        TRUE ~ NA_real_),    
          RELACIONS_CAT_ESP_1_5 = case_when( RELACIONS_CAT_ESP_1_5 %in% c(1, 2, 3, 4, 5) ~  as.numeric(RELACIONS_CAT_ESP_1_5),
-                                       TRUE ~ NA_real_),
-         LLENGUA_PRIMERA=case_when(LLENGUA_PRIMERA %in% c(1, 2, 3, 80) ~ LLENGUA_PRIMERA,
-                                   LLENGUA_PRIMERA == 4 ~ 80, ## Not enough cases for Aranes
-                                   TRUE ~ NA_real_),
-         estudis_1_5=case_when(ESTUDIS_1_15 %in% c(1, 2, 3) ~ 1L, ## Less than primary
-                               ESTUDIS_1_15 %in% c(4) ~ 2L, ## Secondary
-                               ESTUDIS_1_15 %in% c(5, 6) ~ 3L, ## High School
-                               ESTUDIS_1_15 %in% c(7, 8, 9) ~ 4L, ## Some College
-                               ESTUDIS_1_15 %in% c(10:15) ~ 5L, ## Above
-                               ESTUDIS_1_15 >= 80 ~ NA_integer_),
-         ingressos_1_5=case_when(INGRESSOS_1_15 %in% c(1:5) ~ 1L, ## Less than 1000,
-                                 INGRESSOS_1_15 %in% c(6:8) ~ 2L, ## Less than 2000,
-                                 INGRESSOS_1_15 %in% c(9:10) ~ 3L, ## Less than 3000
-                                 INGRESSOS_1_15 %in% c(11:15) ~ 4L, ## More than 3000
-                                 INGRESSOS_1_15 >= 98 ~ NA_integer_)) |>
+                                            TRUE ~ NA_real_),
+         LLENGUA_PRIMERA = case_when(LLENGUA_PRIMERA_1_3 %in% c(1, 2, 80) ~ LLENGUA_PRIMERA_1_3,
+                                         TRUE ~ 80),
+         estudis_1_5 = case_when(ESTUDIS_1_15 %in% c(1, 2, 3) ~ 1L, ## Less than primary
+                                 ESTUDIS_1_15 %in% c(4) ~ 2L, ## Secondary
+                                 ESTUDIS_1_15 %in% c(5, 6) ~ 3L, ## High School
+                                 ESTUDIS_1_15 %in% c(7, 8, 9) ~ 4L, ## Some College
+                                 ESTUDIS_1_15 %in% c(10:15) ~ 5L, ## Above
+                                 ESTUDIS_1_15 >= 80 ~ NA_integer_),
+         ingressos_1_15 = if_else(is.na(INGRESSOS_1_15), INGRESSOS_15_1, INGRESSOS_1_15),
+         ingressos_1_5 = case_when(ingressos_1_15 %in% c(1:5) ~ 1L, ## Less than 1000,
+                                   ingressos_1_15 %in% c(6:8) ~ 2L, ## Less than 2000,
+                                   ingressos_1_15 %in% c(9:10) ~ 3L, ## Less than 3000
+                                   ingressos_1_15 %in% c(11:15) ~ 4L, ## More than 3000
+                                   ingressos_1_15 >= 98 ~ NA_integer_)) |>
   select("id",
          "intention",
          "recall",
@@ -113,33 +113,33 @@ bop <- bop |>
          # Spatial variables
          "SIMPATIA_PARTIT_PROPER_R",
          "IDEOL_0_10",
-         "ESP_CAT_0_10",
+         "CAT_0_10",
+         "ESP_0_10",
          "RISCOS",
          # Categorical variables
          "GENERE",
          "EDAT_GR",
          "RELIGIO_FREQ",
-         "EFICACIA_EXT_1", 
-         "EFICACIA_EXT_2", 
-         "EFICACIA_INT_1", 
-         "EFICACIA_INT_2",
          "SIT_LAB",
          "VAL_GOV_CAT", 
          "VAL_GOV_ESP",
          "ACTITUD_INDEPENDENCIA",
          "RELACIONS_CAT_ESP",
          "RELACIONS_CAT_ESP_1_5",
-         "RELACIONS_CAT_ESP",
          "LLENGUA_PRIMERA",
          "SIT_ECO_CAT",
          "SIT_ECO_CAT_RETROSPECTIVA",
-         "SIT_ECO_CAT_PROSPECTIVA",                          
+         "SIT_ECO_CAT_PROSPECTIVA",                                    
          "SIT_POL_CAT",
          "SIT_ECO_ESP",
          "SIT_POL_ESP",
          "SATIS_DEMOCRACIA",
          "INTERES_POL_PUBLICS",
-         "INF_POL_MON_FREQ",
+         "INF_POL_DIARI_FREQ",
+         "INF_POL_RADIO_FREQ",                  
+         "INF_POL_TV_FREQ",
+         "INF_POL_XARXES_FREQ",
+         "INF_POL_CONEGUTS_FREQ",
          "PART_ELECCIONS",
          "estudis_1_5",
          "ingressos_1_5",
@@ -159,7 +159,7 @@ clean_party_name <- function(x) {
   if (!is.factor(x)) {
     stop("Party variable is expected to be a factor")
   }
-
+  
   levels(x) <- stri_trans_general(levels(x), "latin-ascii") 
   levels(x) <- stri_replace_all_charclass(levels(x), "[[:punct:]]", "")
   levels(x) <- stri_replace_all_charclass(levels(x), "[[:whitespace:]]", ".")

@@ -10,6 +10,7 @@ library(readr)
 library(haven)
 library(escons)
 library(tidyr)
+library(MESS)
 
 ## ---------------------------------------- 
 ## Read in data and configuration
@@ -22,8 +23,8 @@ evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))
 
 past_results <- read_csv2(file.path(RAW_DTA_FOLDER, "past_results_plots.csv"))
-past_seats <- past_results %>% select(party, past_seats = seats_2019)
-past_vote <- past_results %>% select(party, past_vote = votes_2019)
+past_seats <- past_results %>% select(party, past_seats = seats_2021)
+past_vote <- past_results %>% select(party, past_vote = vote_2021)
 
 p_recall <- readRDS(file.path(DTA_FOLDER, "predicted-recall.RDS"))
 p_behavior <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
@@ -134,7 +135,7 @@ pq <- p + geom_col(width = 0.5,
             vjust = 0.1,
             fontface = "bold") +
   scale_y_discrete(limits = rev) +
-  scale_x_continuous(limits = c(0,30), 
+  scale_x_continuous(limits = c(0,33), 
                      expand = c(0, 0)) +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
@@ -155,12 +156,12 @@ pq <- p + geom_col(width = 0.5,
         plot.title.position = "plot",
         plot.caption.position = "plot") +
   labs(title = "Percentatge de Vot vàlid (± 95%CI)", 
-       subtitle = "vs Resultats 2019",
+       subtitle = "vs Resultats 2021",
        x= "",
        y = "")
 pq
 
-ggsave(file.path(IMG_FOLDER, "figvots_congres.png"), pq,
+ggsave(file.path(IMG_FOLDER, "figevots_parlament.png"), pq,
        units="cm", width=15, height=10, dpi=300)
 
 ## ---------------------------------------- 
@@ -188,8 +189,8 @@ eseats$party <- factor(eseats$party,
 
 p <- ggplot(eseats,
             aes(median, party, fill=party))
-## Modificacio de l'ordre del gráfic per ordre d'escons
-new_order <- c("Ciudadanos", "CUP", "Vox", "PP", "Junts per Catalunya", "En Comú Podem",  "ERC", "PSC")
+# ## Modificacio de l'ordre del gráfic per ordre d'escons
+new_order <- c("Ciudadanos", "Vox", "En Comú Podem", "CUP", "PP", "Junts per Catalunya", "ERC", "PSC")
 
 pq <- p +
   geom_col(aes(fill = party),
@@ -234,8 +235,7 @@ pq <- p +
   scale_color_manual(values=evotes_party_color) +
   #scale_y_discrete(limits = rev) +
   scale_y_discrete(limits = new_order) +
-  scale_x_continuous(limits = c(0, 20),
-                     expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0,44), expand = c(0, 0)) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.major.y = element_blank(),
@@ -253,11 +253,111 @@ pq <- p +
         plot.title.position = "plot",
         plot.caption.position = "plot") +
   labs(title = "Escons (± 95% CI)", 
-       subtitle = "vs Resultats 2019",
+       subtitle = "vs Resultats 2021",
        x= "",
        y = "")
 
 pq
 
-ggsave(file.path(IMG_FOLDER, "figescons_congres.png"), pq,
+ggsave(file.path(IMG_FOLDER, "figescons_parlament.png"), pq,
        units="cm", width=15, height=10, dpi=300)
+
+## ---------------------------------------- 
+
+## Heatmapf of transference
+
+hmap_p <- p_transfer %>%
+  group_by(p_intention, p_recall, .drop = FALSE) %>%
+  summarize(n=length(p_recall)) %>%
+  ungroup() %>%
+  complete(p_recall,
+           p_intention,
+           fill=list(n=0, freq=0)) %>%
+  group_by(p_recall) %>%
+  mutate(proportion=(n / sum(n))*100) %>%
+  mutate(proportion=round_percent(proportion, decimals = 0)) 
+
+hmap_p <- hmap_p%>%
+  mutate(p_intention=case_when(p_intention == "PSCPSOE" ~ "PSC",
+                               p_intention == "En.Comu.Podem" ~ "ECP",
+                               p_intention == "Junts.per.Catalunya" ~ "Junts",
+                               p_intention == "No.votaria" ~ "BAI",
+                               p_intention == "PP" ~ "PP",
+                               p_intention == "ERC" ~ "ERC",
+                               p_intention == "Ciudadanos" ~ "Cs",
+                               p_intention == "CUP" ~ "CUP",
+                               p_intention == "Vox" ~ "Vox",
+                               p_intention == "Altres" ~ "Altres"),
+         p_recall=case_when(p_recall == "PSCPSOE" ~ "PSC",
+                            p_recall == "PP" ~ "PP",
+                            p_recall == "ERC" ~ "ERC",
+                            p_recall == "Cs" ~ "Cs",
+                            p_recall == "CUP" ~ "CUP",
+                            p_recall == "Vox" ~ "Vox",
+                            p_recall == "En.Comu.Podem" ~ "ECP",
+                            p_recall == "Junts.per.Catalunya" ~ "Junts",
+                            p_recall == "Altres.partits" ~ "Altres",
+                            p_recall == "No.va.votar" ~ "BAI"))
+
+
+## Order of parties in plot
+partits_level <- c("PSC",
+                   "ERC",
+                   "Junts",
+                   "Vox",
+                   "CUP",
+                   "ECP",
+                   "Cs",
+                   "PP",
+                   "Altres",
+                   "BAI")
+
+## Plot heatmap
+
+p <- ggplot(hmap_p)
+
+pq <- p +
+  geom_tile(aes(fct_relevel(p_intention, partits_level),
+                fct_relevel(p_recall, partits_level),
+                fill=p_recall,
+                alpha=proportion),
+            color="white",
+            size=1) +
+  geom_text(aes(p_intention,
+                p_recall,
+                label=proportion),
+            color="white",
+            size=4,
+            fontface="bold") +
+  scale_y_discrete(limits=rev) +
+  scale_x_discrete(position="top") +
+  scale_fill_manual(values=as.vector(c("#AEAEAE", #Altres
+                                       "#AEAEAE", #BAI
+                                       party_color_alpha["Ciudadanos"],
+                                       party_color_alpha["CUP"],
+                                       party_color_alpha["En Comú Podem"],
+                                       party_color_alpha["ERC"],
+                                       party_color_alpha["Junts per Catalunya"],
+                                       party_color_alpha["PP"],
+                                       party_color_alpha["PSC"],
+                                       party_color_alpha["Vox"]))) +
+  scale_alpha_continuous(limits=c(0, 10),
+                         range=c(0.3, 1)) +
+  theme_minimal() +
+  theme(legend.position="none",
+        panel.grid.minor.x=element_blank(),
+        panel.grid.major.x=element_blank(),
+        panel.grid.minor.y=element_blank(),
+        panel.grid.major.y=element_blank(),
+        plot.background=element_rect(fill="white",
+                                     colour="white"),
+        plot.margin=margin(0.5, 0.5, 0.5, 0.5, "cm"),
+        axis.title.x.top = element_text(face = "bold",
+                                        margin=margin(0, 0, 0.5, 0, "cm")),
+        axis.title.y = element_text(face = "bold",
+                                    margin=margin(0, 0.5, 0, 0, "cm"))) +
+  labs(x="Estimació de vot 2022",
+       y="Record de vot 2021")
+pq
+ggsave(file.path(IMG_FOLDER, "heatmap_parlament.png"), pq,
+       units="cm", width=15, height=10,  dpi=300)

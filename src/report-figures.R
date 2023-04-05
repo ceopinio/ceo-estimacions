@@ -17,7 +17,7 @@ library(MESS)
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades revisades 1050.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1050.sav"))
 
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))

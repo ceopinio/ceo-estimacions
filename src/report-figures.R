@@ -17,7 +17,7 @@ library(MESS)
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1050.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades_1061.sav"))
 
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))
@@ -119,9 +119,9 @@ pq <- p + geom_col(width = 0.5,
                 label = round(past_vote, digits = 1), 
                 y = party),
             hjust = -.1,
-            vjust = 1.6,
+            vjust = 2,
             fontface = "italic",
-            size = 3) +
+            size = 2) +
   geom_text(aes(lb, 
                 label=round(lb, digits=0), 
                 y = party),
@@ -135,7 +135,7 @@ pq <- p + geom_col(width = 0.5,
             vjust = 0.1,
             fontface = "bold") +
   scale_y_discrete(limits = rev) +
-  scale_x_continuous(limits = c(0,33), 
+  scale_x_continuous(limits = c(0,27), 
                      expand = c(0, 0)) +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
@@ -147,7 +147,7 @@ pq <- p + geom_col(width = 0.5,
         text = element_text(family = "Arial", color  = "black"),
         plot.title = element_text(margin = margin(0.25,0,0.25,0, "cm"),
                                   face = "bold", 
-                                  size = 10,
+                                  size = 12,
                                   color = "black"),
         plot.subtitle = element_text(margin = margin(0,0,0.25,0, "cm"),
                                      color="#ACACAC",
@@ -177,7 +177,8 @@ eseats_party_color_alpha <- party_color_alpha[levels(eseats$party)]
 
 ## Join Past Results
 
-eseats <- eseats %>% left_join(past_seats, by = "party")
+eseats <- eseats %>% left_join(past_seats, by = "party") %>%
+  mutate(lo05 = round(lo05, 0))
 
 ## Sort levels by results
 sorted_levels <- eseats$party[order(eseats$hi95,
@@ -189,8 +190,6 @@ eseats$party <- factor(eseats$party,
 
 p <- ggplot(eseats,
             aes(median, party, fill=party))
-# ## Modificacio de l'ordre del gráfic per ordre d'escons
-new_order <- c("Ciudadanos", "Vox", "En Comú Podem", "CUP", "PP", "Junts per Catalunya", "ERC", "PSC")
 
 pq <- p +
   geom_col(aes(fill = party),
@@ -216,9 +215,9 @@ pq <- p +
                 label = past_seats, 
                 y = party),
             hjust = -.1,
-            vjust = 1.6,
+            vjust = 2,
             fontface = "italic",
-            size = 3) +
+            size = 2) +
   geom_text(aes(lo05, 
                 label = lo05, 
                 y = party),
@@ -233,9 +232,9 @@ pq <- p +
             fontface = "bold") +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
-  #scale_y_discrete(limits = rev) +
-  scale_y_discrete(limits = new_order) +
-  scale_x_continuous(limits = c(0,44), expand = c(0, 0)) +
+  scale_y_discrete(limits = rev) +
+  #scale_y_discrete(limits = new_order) +
+  scale_x_continuous(limits = c(0,39), expand = c(0, 0)) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.major.y = element_blank(),
@@ -244,7 +243,7 @@ pq <- p +
         text = element_text(family = "Arial", color  = "black"),
         plot.title = element_text(margin = margin(0.25,0,0.25,0, "cm"),
                                   face = "bold", 
-                                  size = 10,
+                                  size = 12,
                                   color = "black"),
         plot.subtitle = element_text(margin = margin(0,0,0.25,0, "cm"),
                                      color="#ACACAC",
@@ -267,6 +266,7 @@ ggsave(file.path(IMG_FOLDER, "figescons_parlament.png"), pq,
 ## Heatmapf of transference
 
 hmap_p <- p_transfer %>%
+  mutate(p_recall = if_else(p_recall == "PDeCAT", "Altres", p_recall)) %>% 
   group_by(p_intention, p_recall, .drop = FALSE) %>%
   summarize(n=length(p_recall)) %>%
   ungroup() %>%
@@ -277,27 +277,30 @@ hmap_p <- p_transfer %>%
   mutate(proportion=(n / sum(n))*100) %>%
   mutate(proportion=round_percent(proportion, decimals = 0)) 
 
-hmap_p <- hmap_p%>%
+
+hmap_p <- hmap_p %>%
   mutate(p_intention=case_when(p_intention == "PSCPSOE" ~ "PSC",
                                p_intention == "En.Comu.Podem" ~ "ECP",
                                p_intention == "Junts.per.Catalunya" ~ "Junts",
                                p_intention == "No.votaria" ~ "BAI",
                                p_intention == "PP" ~ "PP",
                                p_intention == "ERC" ~ "ERC",
-                               p_intention == "Ciudadanos" ~ "Cs",
+                               p_intention == "CiutadansCiudadanos" ~ "Cs",
                                p_intention == "CUP" ~ "CUP",
                                p_intention == "Vox" ~ "Vox",
-                               p_intention == "Altres" ~ "Altres"),
+                               p_intention == "Altres" ~ "Altres",
+                               p_intention == "No.votaria" ~ "BAI"),
          p_recall=case_when(p_recall == "PSCPSOE" ~ "PSC",
                             p_recall == "PP" ~ "PP",
                             p_recall == "ERC" ~ "ERC",
-                            p_recall == "Cs" ~ "Cs",
+                            p_recall == "CiutadansCiudadanos" ~ "Cs",
                             p_recall == "CUP" ~ "CUP",
                             p_recall == "Vox" ~ "Vox",
                             p_recall == "En.Comu.Podem" ~ "ECP",
                             p_recall == "Junts.per.Catalunya" ~ "Junts",
-                            p_recall == "Altres.partits" ~ "Altres",
-                            p_recall == "No.va.votar" ~ "BAI"))
+                            p_recall == "Altres" ~ "Altres",
+                            p_recall == "No.va.votar" ~ "BAI", 
+                            TRUE ~ p_recall))
 
 
 ## Order of parties in plot
@@ -331,13 +334,13 @@ pq <- p +
             fontface="bold") +
   scale_y_discrete(limits=rev) +
   scale_x_discrete(position="top") +
-  scale_fill_manual(values=as.vector(c("#AEAEAE", #Altres
-                                       "#AEAEAE", #BAI
-                                       party_color_alpha["Ciudadanos"],
+  scale_fill_manual(values=as.vector(c(Altres = "#AEAEAE", #Altres
+                                       BAI = "#AEAEAE", #BAI,
+                                       party_color_alpha["Cs"],
                                        party_color_alpha["CUP"],
-                                       party_color_alpha["En Comú Podem"],
+                                       party_color_alpha["ECP"],
                                        party_color_alpha["ERC"],
-                                       party_color_alpha["Junts per Catalunya"],
+                                       party_color_alpha["Junts"],
                                        party_color_alpha["PP"],
                                        party_color_alpha["PSC"],
                                        party_color_alpha["Vox"]))) +
@@ -356,7 +359,7 @@ pq <- p +
                                         margin=margin(0, 0, 0.5, 0, "cm")),
         axis.title.y = element_text(face = "bold",
                                     margin=margin(0, 0.5, 0, 0, "cm"))) +
-  labs(x="Estimació de vot 2022",
+  labs(x="Estimació de vot 2023",
        y="Record de vot 2021")
 pq
 ggsave(file.path(IMG_FOLDER, "heatmap_parlament.png"), pq,

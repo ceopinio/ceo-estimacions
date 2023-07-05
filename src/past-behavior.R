@@ -21,7 +21,7 @@ library(doParallel)
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
-past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2021.csv"))
+past_results <- read_excel(file.path(RAW_DTA_FOLDER, "resultatsmunicipals23cat.xlsx"), sheet = "results_PR")
 llengua_primera <- read.csv(file.path(RAW_DTA_FOLDER, "llengua.csv"))
 
 ## ---------------------------------------- 
@@ -35,7 +35,7 @@ registerDoParallel(cl)
 
 results <- past_results |>
   mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits") ~
-                           "Altres.partits",
+                           "Altres",
                          TRUE ~ party)) |>
   group_by(party) |>
   summarize(votes=sum(votes)) |>
@@ -69,7 +69,7 @@ levels(bop$recall)[is.na(levels(bop$recall))] <- "No.va.votar"
 ## Category to be predicted
 levels(bop$recall)[levels(bop$recall) == "No.ho.sap"] <- NA
 ## Rename category for consistency
-levels(bop$recall)[levels(bop$recall) == "Altres"] <- "Altres.partits"
+levels(bop$recall)[levels(bop$recall) == "Altres"] <- "Altres"
 
 
 ## ---------------------------------------- 

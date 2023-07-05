@@ -38,11 +38,12 @@ sresults <- prop.table(xtabs(weight ~ p_intention, data=bop))
 ## Some parties may have changed names between the two elections
 ## Catalunya En Comu Podem -> En Comu Podem
 past_results[past_results$party == "Catalunya.en.Comu.Podem", "party"] <- "En.Comu.Podem"
+past_results[past_results$party == "Ciudadanos", "party"] <- "CiutadansCiudadanos"
 
 ## Shares in previous election
 results <- past_results |>
   filter(party != "Censo") |>
-  mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits") ~
+  mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits", "PDeCAT") ~
                            "Altres",
                          TRUE ~ party),
          party=factor(party, levels(bop$p_intention))) |>

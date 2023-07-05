@@ -14,7 +14,7 @@ library(stringi)
 ## Read in data and configuration
 
 list2env(read_yaml("config/config.yaml"), envir=globalenv())
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1050.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades revisades_1061.sav"))
 
 ## ---------------------------------------- 
 ## Assign ID to data
@@ -26,27 +26,32 @@ bop$id <- 1:nrow(bop)
 bop <- bop[sample(nrow(bop)),]
 
 ## ---------------------------------------- 
+## Party name modifications
+val_label(bop$INT_CONGRES_VOT_R, 10) <- "CUP"
+val_label(bop$INT_CONGRES_VOT_R, 18) <- "En Comú Podem"
+
+## ---------------------------------------- 
 ## Data cleaning
 
 bop <- bop |>
-  mutate(intention=case_when(INT_CONGRES_VOT_R %in% ## Vote intention
-                               c(1, 3, 4, 6, 10, 18, 21, 23, 80) ~ INT_CONGRES_VOT_R,
+  mutate(intention=case_when(INT_CONGRES_VOT_R  == 6 ~ 80, #Es treu Ciudadanos per poca representativitat
+                             INT_CONGRES_VOT_R %in% ## Vote intention
+                               c(1, 3, 4, 10, 18, 21, 23, 80) ~ INT_CONGRES_VOT_R,
                              TRUE ~ NA_real_),
-         recall=case_when(REC_CONGRES_VOT_R < 93 ~ REC_CONGRES_VOT_R,
-                          REC_CONGRES_VOT_R %in% c(93, 94) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
-                          REC_CONGRES_VOT_R > 96 ~ 98), ## Vote recall
-         abstention=case_when(INT_CONGRES_PART %in% c(1, 2, 4, 5) ~ INT_CONGRES_PART,
+         recall = case_when(REC_MUNICIPALS_VOT_R < 93 ~ REC_MUNICIPALS_VOT_R, ## Vot ultimes eleccions
+                            REC_MUNICIPALS_VOT_R %in% c(93, 94, 6) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
+                            REC_MUNICIPALS_VOT_R > 96 ~ 98), ## Vote recall
+         abstention=case_when(INT_CONGRES_PART_1_4 %in% c(1, 2, 3, 4) ~ INT_CONGRES_PART_1_4,
                               TRUE ~ NA_real_), ## Stated abstention
          simpatia = case_when(SIMPATIA_PARTIT_R %in% c(1, 3, 4, 6, 10, 18, 21, 23, 80, 95) ~ SIMPATIA_PARTIT_R,
                               SIMPATIA_PARTIT_R %in% c(98, 99) ~ NA_real_,
                               TRUE ~ 80), ## Stated proximity
-         SIMPATIA_PARTIT_PROPER_R = case_when(SIMPATIA_PARTIT_PROPER %in% c(1, 3, 4, 6, 10, 18, 21, 23, 80, 95) ~ SIMPATIA_PARTIT_PROPER,
+         SIMPATIA_PARTIT_PROPER_R = case_when(SIMPATIA_PARTIT_PROPER %in% c(1, 3, 4, 6, 10, 18, 21, 80, 95) ~ SIMPATIA_PARTIT_PROPER,
                                               is.na(SIMPATIA_PARTIT_PROPER) ~ NA_real_, 
-                                              SIMPATIA_PARTIT_PROPER %in% c(98, 99) ~ NA_real_,
+                                              SIMPATIA_PARTIT_PROPER %in% c(98, 99, 23) ~ NA_real_,
                                               TRUE ~ 80), ## No simpatia partit, quin més proximitat
          across(c("IDEOL_0_10", ## Extrema esquerra - extrema dreta
-                  "CAT_0_10", ## Mínim catalanisme - màxim catalanisme
-                  "ESP_0_10", ## Mínim espanyolisme - màxim espanyolisme
+                  "ESP_CAT_0_10", ## Mínim catalanisme - màxim catalanisme ## Mínim espanyolisme - màxim espanyolisme
                   "RISCOS"), ~ if_else(.x >= 98,
                                        NA_real_,
                                        as.numeric(.x))), ## Spatial variables
@@ -99,12 +104,13 @@ bop <- bop |>
                                  ESTUDIS_1_15 %in% c(7, 8, 9) ~ 4L, ## Some College
                                  ESTUDIS_1_15 %in% c(10:15) ~ 5L, ## Above
                                  ESTUDIS_1_15 >= 80 ~ NA_integer_),
-         ingressos_1_15 = if_else(is.na(INGRESSOS_1_15), INGRESSOS_15_1, INGRESSOS_1_15),
-         ingressos_1_5 = case_when(ingressos_1_15 %in% c(1:5) ~ 1L, ## Less than 1000,
-                                   ingressos_1_15 %in% c(6:8) ~ 2L, ## Less than 2000,
-                                   ingressos_1_15 %in% c(9:10) ~ 3L, ## Less than 3000
-                                   ingressos_1_15 %in% c(11:15) ~ 4L, ## More than 3000
-                                   ingressos_1_15 >= 98 ~ NA_integer_)) |>
+         ingressos_1_5 = case_when(INGRESSOS_1_15 %in% c(1:5) ~ 1L, ## Less than 1000,
+                                   INGRESSOS_1_15 %in% c(6:8) ~ 2L, ## Less than 2000,
+                                   INGRESSOS_1_15 %in% c(9:10) ~ 3L, ## Less than 3000
+                                   INGRESSOS_1_15 %in% c(11:15) ~ 4L, ## More than 3000
+                                   INGRESSOS_1_15 >= 98 ~ NA_integer_),
+         PART_ELECCIONS = case_when(PART_ELECCIONS %in% c(1:5) ~ LLENGUA_PRIMERA_1_3,
+                                    TRUE ~ NA_integer_)) |>
   select("id",
          "intention",
          "recall",
@@ -113,8 +119,7 @@ bop <- bop |>
          # Spatial variables
          "SIMPATIA_PARTIT_PROPER_R",
          "IDEOL_0_10",
-         "CAT_0_10",
-         "ESP_0_10",
+         "ESP_CAT_0_10",
          "RISCOS",
          # Categorical variables
          "GENERE",
@@ -168,6 +173,7 @@ clean_party_name <- function(x) {
 
 bop$intention <- clean_party_name(bop$intention)
 bop$recall <- clean_party_name(bop$recall)
+bop$simpatia_partit_proper_r <- clean_party_name(bop$simpatia_partit_proper_r)
 
 bop <- droplevels(bop)
 

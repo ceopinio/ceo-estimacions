@@ -16,7 +16,7 @@ library(tidyr)
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades anonimitzades 1050.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades revisades_1061.sav"))
 
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))
@@ -134,7 +134,7 @@ pq <- p + geom_col(width = 0.5,
             vjust = 0.1,
             fontface = "bold") +
   scale_y_discrete(limits = rev) +
-  scale_x_continuous(limits = c(0,30), 
+  scale_x_continuous(limits = c(0,40), 
                      expand = c(0, 0)) +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
@@ -189,7 +189,7 @@ eseats$party <- factor(eseats$party,
 p <- ggplot(eseats,
             aes(median, party, fill=party))
 ## Modificacio de l'ordre del gráfic per ordre d'escons
-new_order <- c("Ciudadanos", "CUP", "Vox", "PP", "Junts per Catalunya", "En Comú Podem",  "ERC", "PSC")
+#new_order <- c("Ciudadanos", "CUP", "Vox", "PP", "Junts per Catalunya", "En Comú Podem",  "ERC", "PSC")
 
 pq <- p +
   geom_col(aes(fill = party),
@@ -232,8 +232,8 @@ pq <- p +
             fontface = "bold") +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
-  #scale_y_discrete(limits = rev) +
-  scale_y_discrete(limits = new_order) +
+  scale_y_discrete(limits = rev) +
+  #scale_y_discrete(limits = new_order) +
   scale_x_continuous(limits = c(0, 20),
                      expand = c(0, 0)) +
   theme_minimal() +
@@ -261,4 +261,116 @@ pq
 
 ggsave(file.path(IMG_FOLDER, "figescons_congres.png"), pq,
        units="cm", width=15, height=10, dpi=300)
+
+
+## Heatmapf of transference
+
+hmap_p <- p_transfer %>%
+  mutate(p_recall = as.character(p_recall)) %>% 
+  mutate(p_recall = if_else(p_recall %in% c("PDeCAT", "CiutadansCiudadanos"), "Altres", p_recall)) %>% 
+  group_by(p_intention, p_recall, .drop = FALSE) %>%
+  summarize(n=length(p_recall)) %>%
+  ungroup() %>%
+  complete(p_recall,
+           p_intention,
+           fill=list(n=0, freq=0)) %>%
+  group_by(p_recall) %>%
+  mutate(proportion=(n / sum(n))*100) %>%
+  mutate(proportion=round_percent(proportion, decimals = 0)) 
+
+
+hmap_p <- hmap_p %>%
+  mutate(p_intention=case_when(p_intention == "PSCPSOE" ~ "PSC",
+                               p_intention == "En.Comu.Podem" ~ "Sumar",
+                               p_intention == "Junts.per.Catalunya" ~ "Junts",
+                               p_intention == "PP" ~ "PP",
+                               p_intention == "ERC" ~ "ERC",
+                               p_intention == "CUP" ~ "CUP",
+                               p_intention == "Vox" ~ "Vox",
+                               p_intention == "Altres" ~ "Altres",
+                               p_intention == "No.votaria" ~ "BAI",
+                               TRUE ~ p_intention),
+         p_recall=case_when(p_recall == "PSCPSOE" ~ "PSC",
+                            p_recall == "PP" ~ "PP",
+                            p_recall == "ERC" ~ "ERC",
+                            p_recall == "CUP" ~ "CUP",
+                            p_recall == "Vox" ~ "Vox",
+                            p_recall == "En.Comu.Podem" ~ "Sumar",
+                            p_recall == "Junts.per.Catalunya" ~ "Junts",
+                            p_recall == "Altres" ~ "Altres",
+                            p_recall == "No.va.votar" ~ "BAI", 
+                            TRUE ~ p_recall))
+
+
+## Order of parties in plot
+partits_level <- c("ERC",
+                   "PSC", 
+                   "Junts",
+                   "Sumar",
+                   "PP",
+                   "CUP",
+                   "Vox",
+                   "Cs",
+                   "Altres",
+                   "BAI")
+
+partits_level2 <- c("ERC",
+                    "PSC", 
+                    "Junts",
+                    "Sumar",
+                    "PP",
+                    "CUP",
+                    "Vox",
+                    "Altres",
+                    "BAI")
+
+
+## Plot heatmap
+
+p <- ggplot(hmap_p)
+
+pq <- p +
+  geom_tile(aes(fct_relevel(p_intention, partits_level),
+                fct_relevel(p_recall, partits_level),
+                fill=p_recall,
+                alpha=proportion),
+            color="white",
+            size=1) +
+  geom_text(aes(p_intention,
+                p_recall,
+                label=proportion),
+            color="white",
+            size=4,
+            fontface="bold") +
+  scale_y_discrete(limits=rev) +
+  scale_x_discrete(position="top") +
+  scale_fill_manual(values=as.vector(c(Altres = "#AEAEAE", #Altres
+                                       BAI = "#AEAEAE", #BAI,
+                                       party_color_alpha["CUP"],
+                                       party_color_alpha["ERC"],
+                                       party_color_alpha["Junts"],
+                                       party_color_alpha["PP"],
+                                       party_color_alpha["PSC"],
+                                       party_color_alpha["Sumar"],
+                                       party_color_alpha["Vox"]))) +
+  scale_alpha_continuous(limits=c(0, 10),
+                         range=c(0.3, 1)) +
+  theme_minimal() +
+  theme(legend.position="none",
+        panel.grid.minor.x=element_blank(),
+        panel.grid.major.x=element_blank(),
+        panel.grid.minor.y=element_blank(),
+        panel.grid.major.y=element_blank(),
+        plot.background=element_rect(fill="white",
+                                     colour="white"),
+        plot.margin=margin(0.5, 0.5, 0.5, 0.5, "cm"),
+        axis.title.x.top = element_text(face = "bold",
+                                        margin=margin(0, 0, 0.5, 0, "cm")),
+        axis.title.y = element_text(face = "bold",
+                                    margin=margin(0, 0.5, 0, 0, "cm"))) +
+  labs(x="Estimació de vot 2023",
+       y="Record de vot 2019")
+pq
+ggsave(file.path(IMG_FOLDER, "heatmap_congres.png"), pq,
+       units="cm", width=15, height=10,  dpi=300)
 

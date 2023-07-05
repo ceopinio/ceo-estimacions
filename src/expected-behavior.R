@@ -143,8 +143,8 @@ bop_abstention_data <- droplevels(subset(bop, !is.na(abstention)))
 
 ## Predict on a simplified version
 bop_abstention_data$abstention_twofactor <- as.factor(ifelse(bop_abstention_data$abstention %in%
-                                                               c("Probablement aniria a votar",
-                                                                 "Segur que aniria a votar"),
+                                                               c("Probablement aniré a votar",
+                                                                 "Segur que aniré a votar"),
                                                              "Will.vote",
                                                              "Will.not.vote"))
 

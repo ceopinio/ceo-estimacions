@@ -25,18 +25,24 @@ COLORS:
   Vox:
     - "#3D7416"
     - "#63BE21"
-  ECP:
-    - "#340F34"
-    - "#6E236E"
+  Sumar-ECP:
+    - "#8A0E34"
+    - "#e61857"
+  Sumar:
+    - "#8A0E34"
+    - "#e61857"
+  Ciudadanos:
+    - "#A94A0D"
+    - "#EB6109"
   Cs:
     - "#A94A0D"
     - "#EB6109"
 PRETTY_PARTY_NAMES:
   "PSCPSOE": "PSC"
   "ERC": "ERC"
-  "Cs": "Cs"
+  "Cs": "Ciudadanos"
   "CUP": "CUP"
-  "En.Comu.Podem": "ECP"
+  "En.Comu.Podem": "Sumar-ECP"
   "Junts.per.Catalunya": "Junts"
   "PP": "PP"
   "Vox": "Vox"

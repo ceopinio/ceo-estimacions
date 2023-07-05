@@ -35,8 +35,8 @@ bop <- merge(bop, p_voting, by="id") ## Probability of voting
 ## Consolidate results
 
 bop$abstention_twofactor <- as.factor(ifelse(bop$abstention %in%
-                                               c("Probablement aniria a votar",
-                                                 "Segur que aniria a votar"),
+                                               c("Probablement aniré a votar",
+                                                 "Segur que aniré a votar"),
                                              "Will.vote",
                                              "Will.not.vote"))
 bop$abstention_twofactor[is.na(bop$abstention)] <- NA

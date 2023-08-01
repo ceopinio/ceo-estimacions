@@ -32,20 +32,20 @@ colors and names used for each party. The variables defined in the
 configuration file are attached to the R global environment for ease
 of use.
 
-1. `data-cleaning.R` reads in the raw data in SPSS format and selects
+1. `01-data-cleaning.R` reads in the raw data in SPSS format and selects
    and transforms the variables that are used during the rest of the
    pipeline. It is worth noting that the file also transforms the
    names of the different parties to a format that can be used as
    factor names by R.
 
-2. `past-behavior.R` estimates weights that match the reported
+2. `02-past-behavior.R` estimates weights that match the reported
    electoral behavior the distribution of their primary language of
    the respondents to known frame values. A proportion of respondents
    say that they don't remember who they voted for or even whether
    they voted in the last election. For these individuals, model
    predictions are used.
    
-3. `expected-behavior.R` estimates the electoral behavior of all
+3. `03-expected-behavior.R` estimates the electoral behavior of all
    respondents in the survey at the individual level. There are two
    behaviors of interest: whether the respondent will vote and the
    party they will vote for. A proportion of respondents do not report
@@ -55,14 +55,14 @@ of use.
    assigns a _probability_ of voting. A cutoff probability is then
    estimated from the ROC curve of the model.
   
-4. `vote-shares.R` uses the individual predictions about past and
+4. `04-vote-shares.R` uses the individual predictions about past and
    expected behavior and estimates vote shares at the Catalonia level.
    Individuals who reported that they don't know who they will vote
    for are assigned the predictions from the party choice model.
    Individuals with a probability of voting below the cutoff, are
    expected to not vote.
 
-5. `district-shares.R` estimates district-level vote shares using a
+5. `05-district-shares.R` estimates district-level vote shares using a
    combination of survey data at the district level and some priors to
    compensate for the small sample size. The priors are set to the
    expected deviation between the electoral results from each district
@@ -70,12 +70,12 @@ of use.
    uses the [package `dshare`](https://github.com/ceopinio/dshare)
    which needs to be installed separately.
   
-6. `seat-estimates.R` uses the district-level vote shares to simulate
+6. `06-seat-estimates.R` uses the district-level vote shares to simulate
   the distribution of seats for each party. This script uses the
   [package `escons`](https://github.com/ceopinio/escons)
   which needs to be installed separately.
   
-7. `report-figures.R` prepares the final figures included in the
+7. `07-report-figures.R` prepares the final figures included in the
    report. Note: This file is not executed via the `Snakefile` and
    will likely contain dependencies different from those listed in the
    `renv.lock`.

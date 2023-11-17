@@ -6,37 +6,62 @@ TXT_FOLDER: "txt"
 SRC_FOLDER: "src"
 FOLDS: 5
 REPEATS: 5
+
+
+
 COLORS:
-  PSC:
-    - "#A72B29"
-    - "#E73B39"
-  ERC:
-    - "#B77F22"
-    - "#FFB232"
-  Junts:
-    - "#00857A"
-    - "#00C3B2"
-  PP:
+  #PP:
+  p1:
     - "#055073"
     - "#0BB2FF"
-  CUP:
-    - "#BBAE00"
-    - "#FFED00"
-  Vox:
-    - "#3D7416"
-    - "#63BE21"
-  ECP:
-    - "#340F34"
-    - "#6E236E"
-  Cs:
+  #ERC:
+  p3:
+    - "#B77F22"
+    - "#FFB232"
+  #PSC:
+  p4:
+    - "#A72B29"
+    - "#E73B39"
+  #Ciutadans:
+  p6:
     - "#A94A0D"
     - "#EB6109"
+  #CUP:
+  p10:
+    - "#BBAE00"
+    - "#FFED00"
+  #Sumar-En Comú Podem:
+  p18:
+    - "#340F34"
+    - "#6E236E"
+  #Junts per Catalunya:
+  p21:
+    - "#00857A"
+    - "#00C3B2"
+  #VOX:
+  p23:
+    - "#3D7416"
+    - "#63BE21"
+  #Altres
+  p80:
+    - "#AEAEAE"
+    - "#AEAEAE"
+  #BAI
+  p9000:
+    - "#AEAEAE"
+    - "#AEAEAE"
+
+
+    
 PRETTY_PARTY_NAMES:
-  "PSCPSOE": "PSC"
-  "ERC": "ERC"
-  "Cs": "Cs"
-  "CUP": "CUP"
-  "En.Comu.Podem": "ECP"
-  "Junts.per.Catalunya": "Junts"
-  "PP": "PP"
-  "Vox": "Vox"
+  "p1": "PP"
+  "p3": "ERC"
+  "p4": "PSC"
+  "p6": "Ciudadanos"
+  "p10": "CUP"
+  "p18": "ECP"
+  "p21": "Junts"
+  "p23": "VOX"
+  "p80": "Altres"
+  "p9000": "BAI"
+

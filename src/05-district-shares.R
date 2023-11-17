@@ -21,7 +21,7 @@ bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 p_intention <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
 
-past_results <- read.csv(file.path(RAW_DTA_FOLDER, "results-2021.csv"))
+past_results <- read_delim(file.path(RAW_DTA_FOLDER, "results-2021.csv"),  delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 ## Merge data
 bop <- merge(bop, p_intention, by = "id")
@@ -35,25 +35,22 @@ bop <- droplevels(bop)
 ## Calculate relation between results in district and results in Catalonia
 sresults <- prop.table(xtabs(weight ~ p_intention, data=bop))
 
-## Some parties may have changed names between the two elections
-## Catalunya En Comu Podem -> En Comu Podem
-past_results[past_results$party == "Catalunya.en.Comu.Podem", "party"] <- "En.Comu.Podem"
-past_results[past_results$party == "Ciudadanos", "party"] <- "CiutadansCiudadanos"
-
 ## Shares in previous election
 results <- past_results |>
-  filter(party != "Censo") |>
-  mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits", "PDeCAT") ~
-                           "Altres",
-                         TRUE ~ party),
-         party=factor(party, levels(bop$p_intention))) |>
-  group_by(provincia, party) |>
+  filter(code != 8000) |>
+  mutate(code=case_when(code %in% c(93, 94, 80, 6) ~ #Nul, Blanc, Altres, Ciudadanos
+                          80,
+                        code == 22 ~ 18,
+                        TRUE ~ code),
+         code=factor(code, levels(bop$p_intention))) |>
+  group_by(provincia, code) |>
   summarize(votes=sum(votes)) |>
   as.data.frame()
+results$code <- factor(results$code[results$code != "6"])
 
-results <- xtabs(votes ~ provincia + party, data=results)
+results <- xtabs(votes ~ provincia + code, data=results)
 catshare <- prop.table(colSums(results)) ## Catalonia results
-provshares <- prop.table(results, 1) ## District results
+provshares <- prop.table(results, 1) ## District results 
 cfactors <- apply(provshares, 1, \(x) x/catshare) ## Correction factor
 
 ## Prior for each district is vote share relative to observed survey results in Catalonia

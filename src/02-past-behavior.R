@@ -21,8 +21,8 @@ library(doParallel)
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
-past_results <- read_excel(file.path(RAW_DTA_FOLDER, "resultatsmunicipals23cat.xlsx"), sheet = "results_PR")
-llengua_primera <- read.csv(file.path(RAW_DTA_FOLDER, "llengua.csv"))
+past_results <- read_delim(file.path(RAW_DTA_FOLDER, "results-2023.csv"), delim = ";", escape_double = FALSE, trim_ws = TRUE)
+llengua_primera <- read_delim(file.path(RAW_DTA_FOLDER, "llengua.csv"),  delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 ## ---------------------------------------- 
 ## Cluster configuration
@@ -34,26 +34,23 @@ registerDoParallel(cl)
 ## Results of the last election
 
 results <- past_results |>
-  mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits") ~
-                           "Altres",
-                         TRUE ~ party)) |>
-  group_by(party) |>
+  mutate(code=case_when(code %in% c(93, 94, 80, 6) ~ #Nul, Blanc, Altres, Ciudadanos
+                          80,
+                        TRUE ~ code)) |>
+  group_by(code) |>
   summarize(votes=sum(votes)) |>
   as.data.frame()
 
-No.va.votar <- results[results$party == "Censo", "votes"] -
-  sum(results[results$party != "Censo", "votes"])
+No.va.votar <- results[results$code == 8000, "votes"] -
+  sum(results[results$code != 8000, "votes"])
 
-results <- rbind(results, list("No.va.votar", No.va.votar))
-results <- subset(results, party != "Censo")
+results <- rbind(results, list(9000, No.va.votar))
+results <- subset(results, code != 8000)
 
-past_results <- data.frame("p_recall"=results$party,
+past_results <- data.frame("p_recall"=paste0("p", results$code),
                            "Freq"=results$votes/sum(results$votes)*nrow(bop),
-                           row.names=NULL)
-
-past_results$p_recall <- (gsub("Catalunya.en.Comu.Podem", 
-                               "En.Comu.Podem", 
-                               past_results$p_recall))
+                           row.names=NULL) |>
+  mutate( p_recall = ifelse(p_recall == "p22", "p18", p_recall))
 
 ## ---------------------------------------- 
 ## Distribution of language use
@@ -69,15 +66,18 @@ bop$recall <- as_factor(bop$recall)
 ## Create an "NA" factor
 bop$recall <- addNA(bop$recall)
 ## All nonresponse/don't recall is abstention
-levels(bop$recall)[is.na(levels(bop$recall))] <- "No.va.votar"
+levels(bop$recall)[is.na(levels(bop$recall))] <- "9000"
 ## Category to be predicted
-levels(bop$recall)[levels(bop$recall) == "No.ho.sap"] <- NA
-## Rename category for consistency
-levels(bop$recall)[levels(bop$recall) == "Altres"] <- "Altres"
+levels(bop$recall)[levels(bop$recall) == "98"] <- NA
+## Party with low election
+levels(bop$recall)[levels(bop$recall) == "6"] <- "80"
 
 
 ## ---------------------------------------- 
 ## Predictive model
+
+## it doesn't accept levels started with number
+levels(bop$recall) <- paste0("p", levels(bop$recall))
 
 bop_recall_data <- droplevels(subset(bop, !is.na(recall)))
 
@@ -172,9 +172,8 @@ saveRDS(data.frame("id"=bop$id,
 ## Poststratify to language and past electoral results
 
 ## Impute missings to Other
-bop$llengua_primera[is.na(bop$llengua_primera)] <-
-  "Altres llengües o altres combinacions"
-bop$llengua_primera <- as.numeric(bop$llengua_primera)
+bop$llengua_primera[is.na(bop$llengua_primera)] <- 80
+bop$llengua_primera <- as.numeric(as.character(bop$llengua_primera))
 
 svybop <- svydesign(ids= ~1, weights= ~1, data=bop)
 

@@ -34,17 +34,13 @@ bop <- merge(bop, p_voting, by="id") ## Probability of voting
 ## ---------------------------------------- 
 ## Consolidate results
 
-bop$abstention_twofactor <- as.factor(ifelse(bop$abstention %in%
-                                               c("Probablement aniré a votar",
-                                                 "Segur que aniré a votar"),
-                                             "Will.vote",
-                                             "Will.not.vote"))
+bop$abstention_twofactor <- as.factor(ifelse(bop$abstention %in% c(3, 4), "Will.vote", "Will.not.vote"))
 bop$abstention_twofactor[is.na(bop$abstention)] <- NA
 
 ## Predicted behavior defaults to reported behavior
 bop$p_intention <- bop$intention
 ## If they did not report a party choice, assign the predicted 
-bop$p_intention[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
+bop$p_intention[is.na(bop$intention)] <- as.factor( sub("^p", "", bop$p_partychoice[is.na(bop$intention)]) ) 
 ## If they declare they will not vote, use that behavior
 levels(bop$p_intention) <- c(levels(bop$p_intention), "No.votaria")
 bop$p_intention[bop$abstention_twofactor == "Will.not.vote"] <- "No.votaria"

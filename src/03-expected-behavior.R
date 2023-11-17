@@ -33,6 +33,9 @@ registerDoParallel(cl)
 ## ---------------------------------------- 
 ## Party choice model
 
+## it doesn't accept levels started with number
+levels(bop$intention) <- paste0("p", levels(bop$intention))
+
 bop_intention_data <- droplevels(subset(bop, !is.na(intention)))
 
 train_index <- createDataPartition(bop_intention_data$intention,
@@ -125,7 +128,7 @@ confusion_matrix <- as.data.frame(prop.table(confusionMatrix(p_partychoice,
                                                              droplevels(bop$intention))$table,
                                              1))
 
-p <- ggplot(confusion_matrix, aes(Prediction, Reference, fill=Freq))
+p <- ggplot(confusion_matrix, aes(Reference, Prediction, fill=Freq))
 pq <- p +
   geom_tile() +
   geom_text(aes(label=round(Freq, 2))) +
@@ -142,11 +145,7 @@ ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 bop_abstention_data <- droplevels(subset(bop, !is.na(abstention)))
 
 ## Predict on a simplified version
-bop_abstention_data$abstention_twofactor <- as.factor(ifelse(bop_abstention_data$abstention %in%
-                                                               c("Probablement aniré a votar",
-                                                                 "Segur que aniré a votar"),
-                                                             "Will.vote",
-                                                             "Will.not.vote"))
+bop_abstention_data$abstention_twofactor <- as.factor(ifelse(bop_abstention_data$abstention %in% c(3, 4), "Will.vote", "Will.not.vote"))))
 
 train_index <- createDataPartition(bop_abstention_data$abstention_twofactor,
                                    p=.8,

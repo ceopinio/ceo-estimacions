@@ -35,24 +35,19 @@ bop <- droplevels(bop)
 ## Calculate relation between results in district and results in Catalonia
 sresults <- prop.table(xtabs(weight ~ p_intention, data=bop))
 
-## Some parties may have changed names between the two elections
-## Catalunya En Comu Podem -> En Comu Podem
-past_results[past_results$party == "Catalunya.en.Comu.Podem", "party"] <- "En.Comu.Podem"
-## Junts.per.Catalunya-> Junts
-past_results[past_results$party == "Junts.per.Catalunya", "party"] <- "Junts"
-
 ## Shares in previous election
 results <- past_results |>
-  filter(party != "Censo") |>
-  mutate(party=case_when(party %in% c("Nul", "Blanc", "Altres.partits", "Ciudadanos") ~
-                           "Altres",
-                         TRUE ~ party),
-         party=factor(party, levels(bop$p_intention))) |>
-  group_by(provincia, party) |>
+  filter(code != 8000) |>
+  mutate(code=case_when(code %in% c(93, 94, 80, 6) ~ #Nul, Blanc, Altres, Ciudadano
+                          80,
+                        code == 22 ~ 18,
+                        TRUE ~ code),
+         party=factor(code, levels(bop$p_intention))) |>
+  group_by(provincia, code) |>
   summarize(votes=sum(votes)) |>
   as.data.frame()
 
-results <- xtabs(votes ~ provincia + party, data=results)
+results <- xtabs(votes ~ provincia + code, data=results)
 catshare <- prop.table(colSums(results)) ## Catalonia results
 provshares <- prop.table(results, 1) ## District results
 cfactors <- apply(provshares, 1, \(x) x/catshare) ## Correction factor

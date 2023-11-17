@@ -1,4 +1,4 @@
-"","llengua_primera","code","Freq"
-"1","Catala",1,0.354
-"2","Castella",2,0.566
-"3","Altres",3,0.08
+row;llengua_primera;code;Freq
+1;Catala;1;0.354
+2;Castella;2;0.566
+3;Altres;80;0.08

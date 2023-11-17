@@ -21,7 +21,7 @@ district_share <- as.data.frame(t(district_share))
 ## ---------------------------------------- 
 ## Seat simulation
 
-district_share <- district_share[rownames(district_share) != "Altres", ]
+district_share <- district_share[rownames(district_share) != 80, ] #Altres
 
 ## Simulate share distribution
 simulated_seats <- simulate(district_share,

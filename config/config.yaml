@@ -6,43 +6,65 @@ TXT_FOLDER: "txt"
 SRC_FOLDER: "src"
 FOLDS: 5
 REPEATS: 5
+
+
 COLORS:
-  PSC:
-    - "#A72B29"
-    - "#E73B39"
-  ERC:
-    - "#B77F22"
-    - "#FFB232"
-  Junts:
-    - "#00857A"
-    - "#00C3B2"
-  PP:
+  #PP:
+  p1:
     - "#055073"
     - "#0BB2FF"
-  CUP:
+  #ERC:
+  p3:
+    - "#B77F22"
+    - "#FFB232"
+  #PSC:
+  p4:
+    - "#A72B29"
+    - "#E73B39"
+  #Ciutadans:
+  p6:
+    - "#A94A0D"
+    - "#EB6109"
+  #CUP:
+  p10:
     - "#BBAE00"
     - "#FFED00"
-  Vox:
+  #En Comú Podem:
+  p18:
+    - "#340F34"
+    - "#6E236E"
+  #Junts per Catalunya:
+  p21:
+    - "#00857A"
+    - "#00C3B2"
+  #VOX:
+  p23:
     - "#3D7416"
     - "#63BE21"
-  Sumar-ECP:
+  #Sumar:
+  p24:
     - "#8A0E34"
     - "#e61857"
-  Sumar:
-    - "#8A0E34"
-    - "#e61857"
-  Ciudadanos:
-    - "#A94A0D"
-    - "#EB6109"
-  Cs:
-    - "#A94A0D"
-    - "#EB6109"
+  #Altres
+  p80:
+    - "#AEAEAE"
+    - "#AEAEAE"
+  #BAI
+  p9000:
+    - "#AEAEAE"
+    - "#AEAEAE"
+
+
 PRETTY_PARTY_NAMES:
-  "PSCPSOE": "PSC"
-  "ERC": "ERC"
-  "Cs": "Ciudadanos"
-  "CUP": "CUP"
-  "En.Comu.Podem": "Sumar-ECP"
-  "Junts.per.Catalunya": "Junts"
-  "PP": "PP"
-  "Vox": "Vox"
+  "p1": "PP"
+  "p3": "ERC"
+  "p4": "PSC"
+  "p6": "Ciudadanos"
+  "p10": "CUP"
+  "p18": "ECP"
+  "p21": "Junts"
+  "p23": "VOX"
+  "p24": "Sumar-ECP"
+  "p80": "Altres"
+  "p9000": "BAI"
+

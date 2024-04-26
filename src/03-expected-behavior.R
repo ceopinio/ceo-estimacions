@@ -32,8 +32,6 @@ registerDoParallel(cl)
 
 ## ---------------------------------------- 
 ## Party choice model
-
-## it doesn't accept levels started with number
 levels(bop$intention) <- paste0("p", levels(bop$intention))
 
 bop_intention_data <- droplevels(subset(bop, !is.na(intention)))
@@ -50,8 +48,10 @@ grid_partychoice <- expand.grid(eta=c(.1, .01, .001),
                                 min_child_weight=c(1, 3, 5),
                                 subsample=.8,
                                 colsample_bytree=.8,
-                                nrounds=seq(1, 20, length.out=20)*100,
+                                nrounds=seq(1, 15)*100,
                                 gamma=0)
+
+grid_partychoice <- grid_partychoice[sample(nrow(grid_partychoice), 50, replace = FALSE), ]
 
 control_partychoice_cv <- trainControl(method="repeatedcv",
                                        number=FOLDS,
@@ -145,7 +145,7 @@ ggsave(file.path(IMG_FOLDER, "confusion_matrix-partychoice.pdf"), pq)
 bop_abstention_data <- droplevels(subset(bop, !is.na(abstention)))
 
 ## Predict on a simplified version
-bop_abstention_data$abstention_twofactor <- as.factor(ifelse(bop_abstention_data$abstention %in% c(3, 4), "Will.vote", "Will.not.vote"))))
+bop_abstention_data$abstention_twofactor <- as.factor(ifelse(bop_abstention_data$abstention %in% c(3, 4), "Will.vote", "Will.not.vote"))
 
 train_index <- createDataPartition(bop_abstention_data$abstention_twofactor,
                                    p=.8,
@@ -162,8 +162,10 @@ grid_abstention <- expand.grid(eta=c(.1, .01, .001),
                                min_child_weight=c(1, 3, 5),
                                subsample=.8,
                                colsample_bytree=.8,
-                               nrounds=seq(1, 20, length.out=20)*100,
+                               nrounds=seq(1, 15)*100,
                                gamma=0)
+
+grid_abstention <- grid_abstention[sample(nrow(grid_abstention), 50, replace = FALSE), ]
 
 control_abstention_cv <- trainControl(method="repeatedcv",
                                       number=FOLDS,

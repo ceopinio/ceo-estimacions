@@ -21,8 +21,8 @@ library(doParallel)
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
-past_results <- read_delim(file.path(RAW_DTA_FOLDER, "results-2023.csv"), delim = ";", escape_double = FALSE, trim_ws = TRUE)
-llengua_primera <- read_delim(file.path(RAW_DTA_FOLDER, "llengua.csv"),  delim = ";", escape_double = FALSE, trim_ws = TRUE)
+past_results <- readr::read_delim(file.path(RAW_DTA_FOLDER, "results-2023.csv"), delim = ";", escape_double = FALSE, trim_ws = TRUE)
+llengua_primera <- readr::read_delim(file.path(RAW_DTA_FOLDER, "llengua.csv"),  delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 ## ---------------------------------------- 
 ## Cluster configuration
@@ -93,8 +93,10 @@ grid_recall <- expand.grid(eta=c(.1, .01, .001),
                            min_child_weight=c(1, 3, 5),
                            subsample=.8,
                            colsample_bytree=.8,
-                           nrounds=seq(1, 20, length.out=20)*100,
+                           nrounds=seq(1, 15)*100,
                            gamma=0)
+
+grid_recall <- grid_recall[sample(nrow(grid_recall), 250, replace = FALSE), ]
 
 control_recall_cv <- trainControl(method="repeatedcv",
                                   number=FOLDS,

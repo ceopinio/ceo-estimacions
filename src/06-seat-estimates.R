@@ -38,9 +38,10 @@ saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats-simulation.RDS"))
 ## Keep 5, 50, and 95 percentile of the simulated distribution
 simulated_seats <- simulated_seats |>
   group_by(party) |>
-  summarize(lo05=quantile(total, 0.05),
-            median=quantile(total, 0.5),
-            hi95=quantile(total, .95))
+  summarize(lo05 = round(quantile(total, 0.05)),
+            median = round(quantile(total, 0.5)),
+            hi95 = round(quantile(total, .95)))
 
 ## Save data
 saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats.RDS"))
+

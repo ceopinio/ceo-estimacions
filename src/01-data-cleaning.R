@@ -14,7 +14,8 @@ library(stringi)
 ## Read in data and configuration
 
 list2env(read_yaml("config/config.yaml"), envir=globalenv())
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades_anonimitzades_1071.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades_anonimitzades_1082.sav")) # (Data downloaded from web. CEOdata R package can also be used)
+
 
 ## ---------------------------------------- 
 ## Assign ID to data
@@ -29,19 +30,19 @@ bop <- bop[sample(nrow(bop)),]
 ## Data cleaning
 
 bop <- bop |>
-  mutate(intention=case_when(INT_CONGRES_VOT_R %in% ## Vote intention
-                               c(1, 3, 4, 10, 18, 21, 23, 80) ~ INT_CONGRES_VOT_R,
+  mutate(intention=case_when(INT_CONGRES_VOT_R %in% ## Vote intention 
+                               c(1, 3, 4, 10, 18, 21, 23, 80) ~ INT_CONGRES_VOT_R, # Ciudadanos in "Others" (almost no cases)
                              TRUE ~ NA_real_),
-         recall = case_when(REC_CONGRES_VOT_R == 6 ~ 80, ##There is only one case (Party with low election)
-                            REC_CONGRES_VOT_R < 93 ~ REC_CONGRES_VOT_R, ## Vot ultimes eleccions congres
+         recall = case_when(REC_CONGRES_VOT_R == 6 ~ 80, ## Put parties with really low election in "Others" 
+                            REC_CONGRES_VOT_R < 93 ~ REC_CONGRES_VOT_R, ## Vot ultimes eleccions
                             REC_CONGRES_VOT_R %in% c(93, 94) ~ 80, ## "Altres partits" (with "nul" and "en blanc")
                             REC_CONGRES_VOT_R > 96 ~ 98), ## Vote recall
          abstention=case_when(INT_CONGRES_PART_1_4 %in% c(1, 2, 3, 4) ~ INT_CONGRES_PART_1_4,
                               TRUE ~ NA_real_), ## Stated abstention
-         simpatia = case_when(SIMPATIA_PARTIT_R %in% c(1, 3, 4, 6, 10, 18, 21, 23, 80, 95) ~ SIMPATIA_PARTIT_R,
+         simpatia = case_when(SIMPATIA_PARTIT_R %in% c(1, 3, 4, 6, 10, 18, 21, 23, 80, 95) ~ SIMPATIA_PARTIT_R, 
                               SIMPATIA_PARTIT_R %in% c(98, 99) ~ NA_real_,
                               TRUE ~ 80), ## Stated proximity
-         SIMPATIA_PARTIT_PROPER_R = case_when(SIMPATIA_PARTIT_PROPER %in% c(1, 3, 4, 6, 10, 18, 21, 23, 80, 95) ~ SIMPATIA_PARTIT_PROPER,
+         SIMPATIA_PARTIT_PROPER_R = case_when(SIMPATIA_PARTIT_PROPER %in% c(1, 3, 4, 6, 10, 18, 21, 23, 24, 80, 95) ~ SIMPATIA_PARTIT_PROPER, 
                                               is.na(SIMPATIA_PARTIT_PROPER) ~ NA_real_, 
                                               SIMPATIA_PARTIT_PROPER %in% c(98, 99) ~ NA_real_,
                                               TRUE ~ 80), ## No simpatia partit, quin més proximitat
@@ -61,6 +62,7 @@ bop <- bop |>
                   "SIT_ECO_CAT_PROSPECTIVA",                                    
                   "SIT_POL_CAT",
                   "SIT_ECO_ESP",
+                  "SIT_ECO_ESP_PROSPECTIVA", # Afegida BOP1-2024
                   "SIT_POL_ESP",
                   "SATIS_DEMOCRACIA",
                   "INTERES_POL_PUBLICS",
@@ -86,12 +88,13 @@ bop <- bop |>
                             .x == 3 ~ 0,
                             .x %in% c(4, 5) ~ -1,
                             TRUE ~ NA_real_)),
-         across(c("INF_POL_OBJ_ELECCIONS_CONGRES_GUANYAR", "INF_POL_OBJ_ELECCIONS_PARLAMENT_GUANYAR", "INF_POL_OBJ_LIDER_VOX", "INF_POL_OBJ_TIPUS"),
+         across(c("INF_POL_OBJ_COMICIS", "INF_POL_OBJ_CONSELLER_PARLAMENT", "INF_POL_OBJ_ESCONS_CONGRES",
+                  "INF_POL_OBJ_ESCONS_PARLAMENT", "INF_POL_OBJ_MINISTRE_CONGRES"), 
                 ~ case_when(.x == 1 ~ 1,
                             .x == 2 ~ 0,
                             .x == 3 ~ -1,
                             TRUE ~ NA_real_)),
-         GENERE=case_when(GENERE %in% c(1, 2) ~ GENERE,
+         SEXE = case_when(SEXE %in% c(1, 2) ~ SEXE,
                           TRUE ~ NA_real_),
          RELACIONS_CAT_ESP = case_when( RELACIONS_CAT_ESP %in% c(1, 2, 3, 4) ~  as.numeric(RELACIONS_CAT_ESP),
                                         TRUE ~ NA_real_),    
@@ -122,7 +125,7 @@ bop <- bop |>
          "ESP_0_10",
          "RISCOS",
          # Categorical variables
-         "GENERE",
+         "SEXE",
          "EDAT_GR",
          "RELIGIO_FREQ",
          "SIT_LAB",
@@ -136,6 +139,7 @@ bop <- bop |>
          "SIT_ECO_CAT_PROSPECTIVA",                                    
          "SIT_POL_CAT",
          "SIT_ECO_ESP",
+         "SIT_ECO_ESP_PROSPECTIVA", # Afegida BOP1-2024
          "SIT_POL_ESP",
          "SATIS_DEMOCRACIA",
          "INTERES_POL_PUBLICS",
@@ -145,14 +149,10 @@ bop <- bop |>
          "INF_POL_XARXES_FREQ",
          "INF_POL_CONEGUTS_FREQ",
          "PART_ELECCIONS",
-         "INF_POL_OBJ_ELECCIONS_CONGRES_GUANYAR",
-         "INF_POL_OBJ_ELECCIONS_PARLAMENT_GUANYAR",
-         "INF_POL_OBJ_LIDER_VOX",
-         "INF_POL_OBJ_TIPUS",
+         "INF_POL_OBJ_COMICIS", # CANVIAR AFEGIR ALTRES VARIABLES FACTUALS AMB MATRIU DEFINITIVA
          "estudis_1_5",
-         "ingressos_1_5",
-         "PROVINCIA",
-         "HABITAT",
+         "PROVINCIA", 
+         "HABITAT", 
          # Knowledge and evaluation
          starts_with("CONEIX_"),
          matches("VAL_[A-Z]{1}_[A-Z]{1,}", perl=TRUE)) |>
@@ -169,3 +169,4 @@ bop <- droplevels(bop)
 ## ---------------------------------------- 
 ## Save data
 saveRDS(bop, file.path(DTA_FOLDER, "clean-bop.RDS"))
+

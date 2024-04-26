@@ -36,7 +36,10 @@ simulated_seats <- simulated_seats |>
   group_by(party) |>
   summarize(lo05=quantile(total, 0.05),
             median=quantile(total, 0.5),
-            hi95=quantile(total, .95))
+            hi95=quantile(total, .95)) |>
+  arrange(desc(median)) 
+
+simulated_seats
 
 ## Save data
 saveRDS(simulated_seats, file.path(DTA_FOLDER, "seats.RDS"))

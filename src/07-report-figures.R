@@ -20,35 +20,27 @@ library(rsvg)
 ## Read in data and configuration
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
-# Need to have the data downloaded from the CEO website and saved in the RAW_DTA_FOLDER
-# If not, CEOdata function from the CEOdata R library can be used, 
-df <- read_sav(file.path(DTA_FOLDER, "Microdades_anonimitzades.sav"))
 
-df$id <- 1:nrow(df)
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades_anonimitzades_1071.sav")) # (Data downloaded from website) CEOdata R package can also be used
 
-## Load data from estimated seats and vote share
+bop$id <- 1:nrow(bop)
+
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS"))
 
-## Load icons for the parties (data from wikipedia commons website)
 img_partits <- read_excel(file.path(RAW_DTA_FOLDER, "imatges_partits_url.xlsx"))
 
-## Load data from past results (seats and vote share)
 past_results <- read_csv2(file.path(RAW_DTA_FOLDER, "past_results_plots.csv"))
 past_seats <- past_results |> select(party = code, past_seats = seats_2021) |> mutate(party = paste0("p", party))
-past_vote <- past_results |> 
-  select(party = code, past_vote = vote_2021) |> 
-  mutate(party = paste0("p", party)) |>
-  bind_rows(data.frame(party = "p25", past_vote = 0)) # Add AC as having 0 as a past result
+past_vote <- past_results |> select(party = code, past_vote = vote_2021) |> mutate(party = paste0("p", party))
 
-## Load data from predicted individual behavior, for the transference matrix
 p_recall <- readRDS(file.path(DTA_FOLDER, "predicted-recall.RDS"))
 p_behavior <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
 p_voting <- readRDS(file.path(DTA_FOLDER, "predicted-partychoice.RDS"))
 p_transfer <- merge(p_recall, p_behavior, by="id")
 p_transfer <- merge(p_transfer, p_voting, by="id")
 
-parlament_recall <- df |>
+parlament_recall <- bop |>
   select(id, REC_PARLAMENT_VOT_R) |>
   mutate(
     REC_PARLAMENT_VOT_R = case_when( REC_PARLAMENT_VOT_R < 93 ~ REC_PARLAMENT_VOT_R, ## Vot ultimes eleccions
@@ -59,8 +51,7 @@ parlament_recall <- df |>
     REC_PARLAMENT_VOT_R = case_when(is.na(REC_PARLAMENT_VOT_R) ~ "p9000",
                                     TRUE ~ paste0("p", REC_PARLAMENT_VOT_R))
   ) |>
-  mutate(REC_PARLAMENT_VOT_R = if_else(REC_PARLAMENT_VOT_R == "p80", "p9000", REC_PARLAMENT_VOT_R)) |>
-  rename(p_recall = REC_PARLAMENT_VOT_R) 
+  rename(p_recall = REC_PARLAMENT_VOT_R)
 
 p_transfer1 <- merge(parlament_recall, p_behavior, by = "id")
 p_transfer1 <- merge(p_transfer1, p_voting, by="id")
@@ -101,7 +92,7 @@ evotes <- subset(evotes, party != c("No.votaria"))
 
 evotes$propvote <- evotes$weighted/sum(evotes$weighted) 
 
-moe <- moe(evotes$propvote, nrow(df), .95)
+moe <- moe(evotes$propvote, nrow(bop), .95)
 evotes$lb <- evotes$propvote - moe
 evotes$ub <- evotes$propvote + moe
 
@@ -135,6 +126,7 @@ evotes$party <- factor(evotes$party, levels=as.character(sorted_levels))
 sorted_levels_pretty <- evotes$pretty_party[order(evotes$propvote, decreasing=TRUE)]
 evotes$pretty_party <- factor(evotes$pretty_party, levels=as.character(sorted_levels_pretty))
 
+
 ## Report plot
 p_evotes <- ggplot(evotes,
                    aes(propvote, pretty_party,  fill=party))
@@ -162,7 +154,7 @@ pq_evotes <- p_evotes + geom_col(width = 0.5,
                  image = ENLLAÇ), 
              size = 0.09, 
              by = "width",
-             nudge_x = -1.8) +
+             nudge_x = -1.1) +
   geom_text(aes(past_vote,
                 label = round(past_vote, digits = 1), 
                 y = pretty_party),
@@ -175,8 +167,7 @@ pq_evotes <- p_evotes + geom_col(width = 0.5,
                 y = pretty_party),
             hjust = 1.3,
             vjust = 0.1,
-            fontface = "bold",
-            color = c("black", "black", "#ACACAC", "black", "black", "#ACACAC", "black", "black", "black")) + # Change text colors to seem them well
+            fontface = "bold") +
   geom_text(aes(ub, 
                 label=round(ub, digits=0), 
                 y = pretty_party),
@@ -184,7 +175,7 @@ pq_evotes <- p_evotes + geom_col(width = 0.5,
             vjust = 0.1,
             fontface = "bold") +
   scale_y_discrete(limits = rev) +
-  scale_x_continuous(limits = c(-3,max(evotes$ub)+4), 
+  scale_x_continuous(limits = c(-2,max(evotes$ub)+4), 
                      expand = c(0, 0)) +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
@@ -212,10 +203,9 @@ pq_evotes <- p_evotes + geom_col(width = 0.5,
 
 pq_evotes
 
-# Save it in SVG format
 ggsave(file.path(IMG_FOLDER, "figevots_parlament.svg"), pq_evotes,
        units="cm", width=15, height=10)
-# Save it in PNG format
+
 ggsave(file.path(IMG_FOLDER, "figevots_parlament.png"), pq_evotes,
        units="cm", width=15, height=10)
 
@@ -280,7 +270,7 @@ pq_eseats <- p_eseats +
                  image = ENLLAÇ), 
              size = 0.09, 
              by = "width",
-             nudge_x = -3) + # Set logo position
+             nudge_x = -1.4) +
   geom_text(aes(past_seats, 
                 label = past_seats, 
                 y = pretty_party),
@@ -293,8 +283,7 @@ pq_eseats <- p_eseats +
                 y = pretty_party),
             hjust = 1.3,
             vjust = 0.1,
-            fontface = "bold",
-            color = c("black", "black", "black", "black", "black", "black", "#ACACAC", "black", "black")) + # Change text colors to seem them well
+            fontface = "bold") +
   geom_text(aes(hi95, 
                 label = hi95, 
                 y = pretty_party),
@@ -304,7 +293,7 @@ pq_eseats <- p_eseats +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
   scale_y_discrete(limits = rev) +
-  scale_x_continuous(limits = c(-4.8,max(eseats$hi95)+4), expand = c(0, 0)) + # Set inferior limit so that the logos fit
+  scale_x_continuous(limits = c(-2.5,max(eseats$hi95)+4), expand = c(0, 0)) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.major.y = element_blank(),
@@ -329,10 +318,8 @@ pq_eseats <- p_eseats +
 
 pq_eseats
 
-# Save it in SVG format
 ggsave(file.path(IMG_FOLDER, "figescons_parlament.svg"), pq_eseats,
        units="cm", width=15, height=10)
-# Save it in PNG format
 ggsave(file.path(IMG_FOLDER, "figescons_parlament.png"), pq_eseats,
        units="cm", width=15, height=10)
 
@@ -354,12 +341,7 @@ hmap_p <- p_transfer1 |>
   mutate(proportion=round_percent(proportion, decimals = 0)) |>
   ungroup() |>
   left_join(df_pretty_party |> rename(p_recall_pretty_party = pretty_party), by = c("p_recall" = "party")) |>
-  left_join(df_pretty_party |> rename(p_intention_pretty_party = pretty_party), by = c("p_intention" = "party")) |>
-  # Put Other and BAI together
-  mutate(p_recall_pretty_party = if_else(p_recall_pretty_party == "BAI", "BAI - Altres", p_recall_pretty_party)) |>
-  # Change party names in intention
-  mutate(p_intention_pretty_party = if_else(p_intention_pretty_party == "ECP", "Comuns Sumar", p_intention_pretty_party)) |>
-  mutate(p_intention_pretty_party = if_else(p_intention_pretty_party == "Junts", "Junts+", p_intention_pretty_party))
+  left_join(df_pretty_party |> rename(p_intention_pretty_party = pretty_party), by = c("p_intention" = "party"))
 
 
 ## Sort levels by past results
@@ -370,8 +352,7 @@ partits_level <- c( df_pretty_party[past_vote$party[order(past_vote$past_vote, d
 p_hmap <- ggplot(hmap_p)
 
 pq_hmap <- p_hmap +
-  geom_tile(aes(x = fct_relevel(p_intention_pretty_party, c("PSC", "ERC", "Junts+", "VOX", "Comuns Sumar", 
-                                                            "CUP", "Ciudadanos", "PP", "AC", "Altres", "BAI")), # Set names since we changed them
+  geom_tile(aes(x = fct_relevel(p_intention_pretty_party, partits_level),
                 y = fct_relevel(p_recall_pretty_party, partits_level),
                 fill = p_recall,
                 alpha=proportion),
@@ -404,10 +385,8 @@ pq_hmap <- p_hmap +
   labs(x="Estimació de vot 2024",
        y="Record de vot 2021")
 pq_hmap
-
-# Save it in SVG format
 ggsave(file.path(IMG_FOLDER, "heatmap_parlament.svg"), pq_hmap,
-       units="cm", width=22, height=12)
-# Save it in PNG format
+       units="cm", width=17, height=10)
 ggsave(file.path(IMG_FOLDER, "heatmap_parlament.png"), pq_hmap,
-       units="cm", width=22, height=12)
+       units="cm", width=17, height=10)
+

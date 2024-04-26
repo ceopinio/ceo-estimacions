@@ -10,19 +10,29 @@ library(readr)
 library(haven)
 library(escons)
 library(tidyr)
+library(svglite)
+library(readxl)
+library(ggimage)
+library(rsvg)
 
 ## ---------------------------------------- 
 ## Read in data and configuration
 
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
 
-bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades_anonimitzades_1071.sav"))
+bop <- read_sav(file.path(RAW_DTA_FOLDER, "Microdades_anonimitzades_1082.sav")) # (Data downloaded from web. CEOdata R package can also be used)
+
+bop$id <- 1:nrow(bop)
+
+source(file.path(RAW_DTA_FOLDER, "funcio_round_percent.R"))
 
 evotes <- readRDS(file.path(DTA_FOLDER, "estimated-vote-share.RDS"))
 eseats <- readRDS(file.path(DTA_FOLDER, "seats.RDS")) |>
   mutate(
     party = ifelse(party == 18, 24, party)
   )
+
+img_partits <- read_excel(file.path(RAW_DTA_FOLDER, "imatges_partits_url.xlsx"))
 
 past_results <- read_csv2(file.path(RAW_DTA_FOLDER, "past_results_plots.csv"))
 past_seats <- past_results |> select(party = code, past_seats = seats_c_2023) |> mutate(party = ifelse(party == 18, "p24" , paste0("p", party)))
@@ -102,7 +112,8 @@ evotes_party_color_alpha <- party_color_alpha[levels(evotes$party)]
 ## Join Past Results
 evotes <- evotes |>
   left_join(past_vote, by = "party") |>
-  left_join(df_pretty_party, by = "party")
+  left_join(df_pretty_party, by = "party") |>
+  left_join(img_partits, by = c("pretty_party" = "PARTIT"))
 
 ## Sort levels by results
 sorted_levels <- evotes$party[order(evotes$propvote, decreasing=TRUE)]
@@ -134,6 +145,12 @@ pq_evotes <- p_evotes + geom_col(width = 0.5,
            width = 0.3,
            position = position_nudge(y = -0.3)) +
   geom_vline(aes(xintercept = 0)) +
+  geom_image(aes(x = 0, 
+                 y = pretty_party, 
+                 image = ENLLAÇ), 
+             size = 0.09, 
+             by = "width",
+             nudge_x = -1.1) +
   geom_text(aes(past_vote,
                 label = round(past_vote, digits = 1), 
                 y = pretty_party),
@@ -154,7 +171,7 @@ pq_evotes <- p_evotes + geom_col(width = 0.5,
             vjust = 0.1,
             fontface = "bold") +
   scale_y_discrete(limits = rev) +
-  scale_x_continuous(limits = c(0,max(evotes$ub, evotes$past_vote)+3), 
+  scale_x_continuous(limits = c(-2,max(evotes$ub, evotes$past_vote)+3), 
                      expand = c(0, 0)) +
   scale_fill_manual(values=evotes_party_color_alpha) +
   scale_color_manual(values=evotes_party_color) +
@@ -162,6 +179,7 @@ pq_evotes <- p_evotes + geom_col(width = 0.5,
   theme(legend.position = "none",
         panel.grid.major.y = element_blank(),
         axis.title.x = element_text(margin = margin(0.5,0,0,0, "cm")),
+        axis.text.y = element_blank(),
         plot.margin = margin(0.5,0.5,0,0.5, "cm"),
         text = element_text(family = "Arial", color  = "black"),
         plot.title = element_text(margin = margin(0.25,0,0.25,0, "cm"),
@@ -183,6 +201,8 @@ pq_evotes
 
 ggsave(file.path(IMG_FOLDER, "figvots_congres.svg"), pq_evotes,
        units="cm", width=15, height=10)
+ggsave(file.path(IMG_FOLDER, "figvots_congres.png"), pq_evotes,
+       units="cm", width=15, height=10)
 
 
 ## Estimated seat distribution ------------
@@ -203,7 +223,8 @@ eseats_party_color <- party_color[levels(eseats$party)]
 eseats_party_color_alpha <- party_color_alpha[levels(eseats$party)]
 
 ## Join Past Results
-eseats <- eseats %>% left_join(past_seats, by = "party")
+eseats <- eseats %>% left_join(past_seats, by = "party") |> 
+  left_join(img_partits, by = c("pretty_party" = "PARTIT"))
 
 ## Sort levels by results
 sorted_levels <- eseats$party[order(eseats$hi95, decreasing=TRUE)]
@@ -237,6 +258,12 @@ pq_eseats <- p_eseats +
            width = 0.3,
            position = position_nudge(y = -0.3)) +
   geom_vline(aes(xintercept = 0)) +
+  geom_image(aes(x = 0, 
+                 y = pretty_party, 
+                 image = ENLLAÇ), 
+             size = 0.09, 
+             by = "width",
+             nudge_x = -1.1) +
   geom_text(aes(past_seats, 
                 label = past_seats, 
                 y = pretty_party),
@@ -259,12 +286,13 @@ pq_eseats <- p_eseats +
   scale_fill_manual(values=eseats_party_color_alpha) +
   scale_color_manual(values=eseats_party_color) +
   scale_y_discrete(limits = rev) +
-  scale_x_continuous(limits = c(0, max(eseats$hi95, eseats$past_seats)+3),
+  scale_x_continuous(limits = c(-2, max(eseats$hi95, eseats$past_seats)+3),
                      expand = c(0, 0)) +
   theme_minimal() +
   theme(legend.position = "none",
         panel.grid.major.y = element_blank(),
         axis.title.x = element_text(margin = margin(0.5,0,0,0, "cm")),
+        axis.text.y = element_blank(),
         plot.margin = margin(0.5,0.5,0,0.5, "cm"),
         text = element_text(family = "Arial", color  = "black"),
         plot.title = element_text(margin = margin(0.25,0,0.25,0, "cm"),
@@ -286,6 +314,8 @@ pq_eseats
 
 ggsave(file.path(IMG_FOLDER, "figescons_congres.svg"), pq_eseats,
        units="cm", width=15, height=10)
+ggsave(file.path(IMG_FOLDER, "figescons_congres.png"), pq_eseats,
+       units="cm", width=15, height=10)
 
 
 
@@ -306,7 +336,7 @@ hmap_p <- p_transfer |>
            fill=list(n=0, freq=0)) |>
   group_by(p_recall) |>
   mutate(proportion=(n / sum(n))*100) |>
-  mutate(proportion=round_percent(proportion, decimals = 0)) |>
+  mutate(proportion=round_percent(proportion)) |>
   ungroup() |>
   left_join(df_pretty_party |> rename(p_recall_pretty_party = pretty_party), by = c("p_recall" = "party")) |>
   left_join(df_pretty_party |> rename(p_intention_pretty_party = pretty_party), by = c("p_intention" = "party"))
@@ -351,11 +381,11 @@ pq_hmap <- p_hmap +
                                         margin=margin(0, 0, 0.5, 0, "cm")),
         axis.title.y = element_text(face = "bold",
                                     margin=margin(0, 0.5, 0, 0, "cm"))) +
-  labs(x="Estimació de vot 2023",
+  labs(x="Estimació de vot 2024",
        y="Record de vot 2023")
 pq_hmap
 
+ggsave(file.path(IMG_FOLDER, "heatmap_congres.svg"), pq_hmap,
+       units="cm", width=18, height=12,  dpi=300)
 ggsave(file.path(IMG_FOLDER, "heatmap_congres.png"), pq_hmap,
        units="cm", width=18, height=12,  dpi=300)
-
-

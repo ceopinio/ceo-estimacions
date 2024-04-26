@@ -15,24 +15,25 @@ options(mc.cores = parallel::detectCores() - 1)
 
 ## ---------------------------------------- 
 ## Read in data and configuration
+
 list2env(read_yaml("./config/config.yaml"), envir=globalenv())
-df <- readRDS(file.path(DTA_FOLDER, "clean-df.RDS"))
+bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 p_intention <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
 
 past_results <- readr::read_delim(file.path(RAW_DTA_FOLDER, "results-2021.csv"),  delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 ## Merge data
-df <- merge(df, p_intention, by = "id")
+bop <- merge(bop, p_intention, by = "id")
 
-df <- df[!df$p_intention %in% c("No.votaria"), ] ## Only interested in vote shares
-df <- droplevels(df)
+bop <- bop[!bop$p_intention %in% c("No.votaria"), ] ## Only interested in vote shares
+bop <- droplevels(bop)
 
 ## ---------------------------------------- 
 ## Set priors for vote share in each district
 
 ## Calculate relation between results in district and results in Catalonia
-sresults <- prop.table(xtabs(weight ~ p_intention, data=df))
+sresults <- prop.table(xtabs(weight ~ p_intention, data=bop))
 
 ## Shares in previous election
 results <- past_results |>
@@ -41,20 +42,10 @@ results <- past_results |>
                           80,
                         code == 22 ~ 18,
                         TRUE ~ code),
-         code=factor(code, levels(df$p_intention))) |>
+         code=factor(code, levels(bop$p_intention))) |>
   group_by(provincia, code) |>
   summarize(votes=sum(votes)) |>
-  ungroup() |>
   as.data.frame()
-
-## We add a non-informative prior for Aliança Catalana, because it is a new party
-## Just like if they had a 2% of the valid votes in each district
-results_AC <- results |>
-  summarise(total = sum(votes), .by = provincia) |>
-  mutate(code = 25, votes = round(total*0.02)) |>
-  select(-total)
-
-results <- rbind(results, results_AC)
 results$code <- factor(results$code)
 
 results <- xtabs(votes ~ provincia + code, data=results)
@@ -68,11 +59,11 @@ P <- apply(cfactors, 2, \(x) x*sresults/sum(x*sresults))
 ## model
 fit <- dshare(p_intention ~ provincia,
               weights=weight,
-              data=df,
+              data=bop,
               priors=P,
-              sd=.025, # This sets the importance of the priors (higher sd, less informative priors)
+              sd=.025,
               chains=3,
-              iter=2000) # If no convergence, increase iterations
+              iter = 5000)
 
 ## ---------------------------------------- 
 ## Save estimates in simulation format
@@ -82,6 +73,10 @@ pestimates <- apply(pestimates$beta, c(2, 3), mean)
 
 ## Use the dimension names of the factors matrix
 dimnames(pestimates) <- dimnames(t(cfactors))
+
+## ---------------------------------------- 
+## Save data
+saveRDS(pestimates, file.path(DTA_FOLDER, "vote-share-district.RDS"))
 
 ## ---------------------------------------- 
 ## Save data

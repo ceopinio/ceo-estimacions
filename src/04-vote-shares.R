@@ -87,7 +87,7 @@ n_notvoting <- (1 - turnout) *
   (nrow(bop) - sum(bop$abstention_twofactor == "Will.not.vote", na.rm=TRUE))
 
 vote <- bop$intention
-vote[is.na(bop$intention)] <- bop$p_partychoice[is.na(bop$intention)]
+vote[is.na(bop$intention)] <- as.factor( sub("^p", "", bop$p_partychoice[is.na(bop$intention)]) )
 vote <- rep(list(as.character(vote)), length(turnout))
 
 ## Predicted as abstainers (among those who have reported they will vote)
@@ -125,7 +125,7 @@ sim <- reshape(sim,
                v.names="share",
                timevar="p")
 
-sim$ep <- rep(eturnout, each=9)
+sim$ep <- rep(eturnout, each=8)
 
 ## Relation between turnout levels and probability of abstaining
 pt_turnout <- cbind.data.frame(turnout, eturnout)
@@ -148,8 +148,7 @@ pq <- p + geom_line() +
        x="Turnout rate",
        y="Vote share") +
   lims(x=c(0, 1),
-       y=c(0, .3)) +
+       y=c(0, .4)) +
   scale_color_discrete("Party")
- 
+
 ggsave(file.path(IMG_FOLDER, "simulation-voting.pdf"), pq)
- 

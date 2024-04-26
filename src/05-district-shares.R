@@ -21,7 +21,7 @@ bop <- readRDS(file.path(DTA_FOLDER, "clean-bop.RDS"))
 
 p_intention <- readRDS(file.path(DTA_FOLDER, "individual-behavior.RDS"))
 
-past_results <- read.csv2(file.path(RAW_DTA_FOLDER, "results-2019.csv"))
+past_results <- read.csv2(file.path(RAW_DTA_FOLDER, "results-2023.csv"))
 
 ## Merge data
 bop <- merge(bop, p_intention, by = "id")
@@ -38,7 +38,7 @@ sresults <- prop.table(xtabs(weight ~ p_intention, data=bop))
 ## Shares in previous election
 results <- past_results |>
   filter(code != 8000) |>
-  mutate(code=case_when(code %in% c(93, 94, 80, 6) ~ #Nul, Blanc, Altres, Ciudadano
+  mutate(code=case_when(code %in% c(93, 94, 80, 6) ~ #Nul, Blanc, Altres
                           80,
                         code == 22 ~ 18,
                         TRUE ~ code),
@@ -56,7 +56,7 @@ cfactors <- apply(provshares, 1, \(x) x/catshare) ## Correction factor
 P <- apply(cfactors, 2, \(x) x*sresults/sum(x*sresults))
 
 ## model
-fit <- dshare(p_intention ~ provincia,
+fit <- dshare(p_intention ~ provincia, 
               weights=weight,
               data=bop,
               priors=P,
@@ -75,4 +75,3 @@ dimnames(pestimates) <- dimnames(t(cfactors))
 ## ---------------------------------------- 
 ## Save data
 saveRDS(pestimates, file.path(DTA_FOLDER, "vote-share-district.RDS"))
-
